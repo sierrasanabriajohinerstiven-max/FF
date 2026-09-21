@@ -448,53 +448,68 @@ function buildBouquet(uid){
       mu * mu * c.p0[1] + 2 * mu * u * c.p1[1] + u * u * c.p2[1]
     ];
   }
-  function buildLeaf(len, maxW, teeth){
+  function bezierTangentDeg(c, u){
+    var dx = 2 * (1 - u) * (c.p1[0] - c.p0[0]) + 2 * u * (c.p2[0] - c.p1[0]);
+    var dy = 2 * (1 - u) * (c.p1[1] - c.p0[1]) + 2 * u * (c.p2[1] - c.p1[1]);
+    return Math.atan2(dy, dx) * 180 / Math.PI;
+  }
+  /* la hoja se curva un poco hacia arriba en su propio largo (la "vena
+     central" no es recta), para que se vea erguida y viva, no lacia */
+  function buildLeaf(len, maxW, teeth, bow){
     var g = svgEl('g', {});
     var steps = teeth * 2;
-    var top = [];
+    function mid(s){ return -bow * Math.sin(Math.PI * s); }
+    var top = [], bottom = [];
     for (var i = 0; i <= steps; i++){
       var s = i / steps;
       var envelope = Math.sin(Math.PI * Math.pow(s, 0.72));
       var tooth = (i > 0 && i < steps && i % 2 === 0) ? 0.74 : 1;
-      top.push([len * s, -maxW * envelope * tooth]);
+      var half = maxW * envelope * tooth;
+      var m = mid(s);
+      top.push([len * s, m - half]);
+      bottom.push([len * s, m + half]);
     }
     var d = 'M0,0';
     top.forEach(function(p){ d += ' L' + p[0].toFixed(1) + ',' + p[1].toFixed(1); });
-    for (var j = top.length - 2; j >= 0; j--){
-      d += ' L' + top[j][0].toFixed(1) + ',' + (-top[j][1]).toFixed(1);
+    for (var j = bottom.length - 2; j >= 0; j--){
+      d += ' L' + bottom[j][0].toFixed(1) + ',' + bottom[j][1].toFixed(1);
     }
     d += ' Z';
     g.appendChild(svgEl('path', { d: d, fill: 'url(#pg-leaf-' + uid + ')' }));
 
-    /* vena central + venas secundarias en diagonal, como en una hoja real */
-    g.appendChild(svgEl('path', {
-      d: 'M2,0 L' + (len - 3) + ',0', fill: 'none', stroke: '#213e17', 'stroke-width': 0.7, opacity: 0.65
-    }));
+    /* vena central (curva) + venas secundarias en diagonal */
+    var midD = 'M2,' + mid(2 / len).toFixed(1);
+    for (var k = 1; k <= 6; k++){ var s2 = k / 6; midD += ' L' + (len * s2).toFixed(1) + ',' + mid(s2).toFixed(1); }
+    g.appendChild(svgEl('path', { d: midD, fill: 'none', stroke: '#213e17', 'stroke-width': 0.7, opacity: 0.65 }));
     [0.28, 0.55].forEach(function(s){
-      var vx = len * s;
+      var vx = len * s, vy = mid(s);
       var vw = maxW * Math.sin(Math.PI * Math.pow(s, 0.72)) * 0.72;
       g.appendChild(svgEl('path', {
-        d: 'M' + vx.toFixed(1) + ',0 L' + (vx + vw * 0.7).toFixed(1) + ',' + (-vw).toFixed(1),
+        d: 'M' + vx.toFixed(1) + ',' + vy.toFixed(1) + ' L' + (vx + vw * 0.7).toFixed(1) + ',' + (vy - vw).toFixed(1),
         fill: 'none', stroke: '#213e17', 'stroke-width': 0.5, opacity: 0.5
       }));
       g.appendChild(svgEl('path', {
-        d: 'M' + vx.toFixed(1) + ',0 L' + (vx + vw * 0.7).toFixed(1) + ',' + vw.toFixed(1),
+        d: 'M' + vx.toFixed(1) + ',' + vy.toFixed(1) + ' L' + (vx + vw * 0.7).toFixed(1) + ',' + (vy + vw).toFixed(1),
         fill: 'none', stroke: '#213e17', 'stroke-width': 0.5, opacity: 0.5
       }));
     });
     return g;
   }
+  /* ángulo: no en línea recta con el tallo (se veía marchita, como un
+     palito apuntando arriba) sino abierta respecto a él, como una "V",
+     usando la tangente del tallo en ese punto más un giro hacia afuera */
   var leafStems = heads.filter(function(h){ return h.type !== 'marigold'; });
   leafStems.forEach(function(h, i){
     var c = stemCurve(h);
     var u = 0.3 + (i % 3) * 0.14; /* distintas alturas a lo largo del tallo */
     var p = bezierPoint(c, u);
-    var radialDeg = Math.atan2(p[1] - tieY, p[0] - tieX) * 180 / Math.PI;
-    var tilt = (i % 2 === 0 ? 1 : -1) * (6 + Math.random() * 10);
+    var tangentDeg = bezierTangentDeg(c, u);
+    var side = i % 2 === 0 ? 1 : -1;
+    var openAngle = side * (42 + Math.random() * 16);
     var leaf = svgEl('g', {
-      transform: 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ') rotate(' + (radialDeg + tilt).toFixed(1) + ') scale(' + (0.78 + Math.random() * 0.3).toFixed(2) + ')'
+      transform: 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ') rotate(' + (tangentDeg + openAngle).toFixed(1) + ') scale(' + (0.78 + Math.random() * 0.3).toFixed(2) + ')'
     });
-    leaf.appendChild(buildLeaf(34, 8.5, 5));
+    leaf.appendChild(buildLeaf(34, 8.5, 5, 4));
     group.appendChild(leaf);
   });
 
