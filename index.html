@@ -38,9 +38,9 @@ body{
   margin:0;
   overflow:hidden;
   background:
-    radial-gradient(ellipse 85% 65% at 50% 47%, rgba(201,217,74,0.24), transparent 62%),
-    radial-gradient(ellipse 46% 38% at 50% 47%, rgba(255,246,204,0.22), transparent 60%),
-    radial-gradient(140% 100% at 50% 50%, transparent 45%, rgba(0,0,0,0.6) 100%),
+    radial-gradient(ellipse 92% 72% at 50% 47%, rgba(201,217,74,0.34), transparent 65%),
+    radial-gradient(ellipse 50% 42% at 50% 47%, rgba(255,246,204,0.28), transparent 62%),
+    radial-gradient(140% 100% at 50% 50%, transparent 40%, rgba(0,0,0,0.62) 100%),
     linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-1) 100%);
   color:var(--white);
   font-family:var(--font-body);
@@ -112,10 +112,10 @@ button{font-family:inherit;}
   margin:-340px 0 0 -340px;
   border-radius:50%;
   background:
-    radial-gradient(circle, rgba(255,246,204,0.5), transparent 32%),
-    radial-gradient(circle, rgba(201,217,74,0.38), transparent 55%),
-    radial-gradient(circle, rgba(250,204,21,0.22), transparent 72%);
-  filter:blur(10px);
+    radial-gradient(circle, rgba(255,246,204,0.36), transparent 26%),
+    radial-gradient(circle, rgba(201,217,74,0.34), transparent 52%),
+    radial-gradient(circle, rgba(250,204,21,0.2), transparent 72%);
+  filter:blur(12px);
   pointer-events:none;
 }
 
@@ -123,8 +123,8 @@ button{font-family:inherit;}
 .spiral-galaxy{
   position:fixed;
   top:50%;left:50%;
-  width:300px;height:300px;
-  margin:-150px 0 0 -150px;
+  width:380px;height:380px;
+  margin:-190px 0 0 -190px;
   pointer-events:none;
   z-index:1;
   animation:nebula-spin 70s linear infinite;
@@ -179,7 +179,7 @@ button{font-family:inherit;}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:8px;
+  gap:12px;
   border:none;
   background:none;
   padding:0;
@@ -203,8 +203,14 @@ button{font-family:inherit;}
   font-size:clamp(1rem,3.8vw,1.25rem);
   color:var(--label-color, var(--gold-1));
   white-space:nowrap;
-  text-shadow:0 2px 10px rgba(0,0,0,0.85), 0 0 14px var(--label-glow, rgba(250,204,21,0.5));
+  text-shadow:
+    0 0 3px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.9),
+    1px 1px 2px rgba(0,0,0,0.95), -1px -1px 2px rgba(0,0,0,0.95),
+    1px -1px 2px rgba(0,0,0,0.95), -1px 1px 2px rgba(0,0,0,0.95),
+    0 2px 12px rgba(0,0,0,0.8), 0 0 16px var(--label-glow, rgba(250,204,21,0.6));
 }
+.cluster.hero{gap:16px;}
+.cluster.hero .cluster-label{font-size:clamp(1.3rem,5vw,1.6rem);}
 .cluster:focus-visible{outline:none;}
 .cluster:focus-visible .cluster-label{text-decoration:underline;}
 
@@ -473,13 +479,16 @@ function buildBouquet(uid){
   var roseGrad = svgEl('linearGradient', { id: 'pg-rose-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
   roseGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--rose-1)' }));
   roseGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--rose-2)' }));
+  var marigoldGrad = svgEl('linearGradient', { id: 'pg-marigold-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
+  marigoldGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#ffb020' }));
+  marigoldGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#d94a1c' }));
   var paperGrad = svgEl('linearGradient', { id: 'pg-paper-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
   paperGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--paper-1)' }));
   paperGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--paper-2)' }));
   var shadowGrad = svgEl('radialGradient', { id: 'pg-shadow-' + uid });
   shadowGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'rgba(0,0,0,0.5)' }));
   shadowGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'rgba(0,0,0,0)' }));
-  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(paperGrad); defs.appendChild(shadowGrad);
+  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(marigoldGrad); defs.appendChild(paperGrad); defs.appendChild(shadowGrad);
   svg.appendChild(defs);
 
   var group = svgEl('g', { class: 'bouquet-sway' });
@@ -489,13 +498,15 @@ function buildBouquet(uid){
   svg.appendChild(svgEl('ellipse', { cx: tieX, cy: tieY + 20, rx: 56, ry: 12, fill: 'url(#pg-shadow-' + uid + ')' }));
 
   var heads = [
-    { x: 150, y: 78,  s: 1.15, r: 0,   type: 'sun'  },
-    { x: 104, y: 100, s: 0.95, r: -14, type: 'sun'  },
-    { x: 196, y: 100, s: 0.95, r: 14,  type: 'sun'  },
-    { x: 130, y: 120, s: 0.85, r: -6,  type: 'rose' },
-    { x: 170, y: 120, s: 0.85, r: 6,   type: 'rose' },
-    { x: 70,  y: 142, s: 0.82, r: -24, type: 'sun'  },
-    { x: 230, y: 142, s: 0.82, r: 24,  type: 'sun'  }
+    { x: 150, y: 74,  s: 1.18, r: 0,   type: 'sun'      },
+    { x: 108, y: 94,  s: 0.98, r: -13, type: 'sun'      },
+    { x: 192, y: 94,  s: 0.98, r: 13,  type: 'sun'      },
+    { x: 128, y: 112, s: 0.82, r: -8,  type: 'rose'     },
+    { x: 172, y: 112, s: 0.82, r: 8,   type: 'rose'     },
+    { x: 150, y: 100, s: 0.7,  r: 0,   type: 'marigold' },
+    { x: 76,  y: 132, s: 0.86, r: -22, type: 'sun'      },
+    { x: 224, y: 132, s: 0.86, r: 22,  type: 'sun'      },
+    { x: 150, y: 136, s: 0.72, r: 0,   type: 'marigold' }
   ];
 
   /* envoltorio de papel, detrás de todo, con facetas para dar textura de arrugado */
@@ -513,6 +524,10 @@ function buildBouquet(uid){
     d: 'M' + (tieX + 46) + ',' + (tieY + 26) + ' L' + (tieX + 22) + ',' + (tieY - 74) +
        ' L' + tieX + ',' + (tieY - 60) + ' L' + (tieX + 30) + ',' + (tieY + 24) + ' Z',
     fill: '#000000', opacity: 0.12
+  }));
+  group.appendChild(svgEl('path', {
+    d: 'M' + tieX + ',' + (tieY - 72) + ' Q' + (tieX - 6) + ',' + (tieY - 30) + ' ' + tieX + ',' + (tieY + 24),
+    fill: 'none', stroke: '#000000', 'stroke-width': 1.4, opacity: 0.18
   }));
 
   /* tallos: curva desde el punto de amarre hasta cada cabeza */
@@ -557,7 +572,8 @@ function buildBouquet(uid){
           head.appendChild(svgEl('ellipse', {
             cx: 0, cy: -layer.baseR, rx: layer.rx, ry: layer.ry,
             transform: 'rotate(' + angle + ')',
-            fill: 'url(#pg-sun-' + uid + ')'
+            fill: 'url(#pg-sun-' + uid + ')',
+            stroke: 'rgba(120,60,10,0.22)', 'stroke-width': 0.6
           }));
         }
       });
@@ -569,7 +585,7 @@ function buildBouquet(uid){
         }));
       }
       head.appendChild(svgEl('ellipse', { cx: -3, cy: -3, rx: 3, ry: 2, fill: '#ffffff', opacity: 0.35 }));
-    } else {
+    } else if (h.type === 'rose') {
       for (var ring = 0; ring < 4; ring++){
         var rCount = 6;
         var radius = 11 - ring * 2.2;
@@ -580,11 +596,29 @@ function buildBouquet(uid){
             cx: 0, cy: -radius, rx: Math.max(5 - ring * 0.6, 2), ry: Math.max(8 - ring * 1, 3),
             transform: 'rotate(' + rAngle + ')',
             fill: 'url(#pg-rose-' + uid + ')',
-            opacity: (1 - ring * 0.08).toFixed(2)
+            opacity: (1 - ring * 0.08).toFixed(2),
+            stroke: 'rgba(120,20,10,0.2)', 'stroke-width': 0.5
           }));
         }
       }
       head.appendChild(svgEl('circle', { r: 2.6, fill: '#7a1f14' }));
+    } else {
+      /* caléndula: muchos pétalos angostos y apretados, para un acento de color denso */
+      for (var mRing = 0; mRing < 3; mRing++){
+        var mCount = 10;
+        var mRadius = 9 - mRing * 2;
+        var mOffset = mRing * 18;
+        for (var mp = 0; mp < mCount; mp++){
+          var mAngle = (360 / mCount) * mp + mOffset;
+          head.appendChild(svgEl('ellipse', {
+            cx: 0, cy: -mRadius, rx: 2.2, ry: Math.max(6 - mRing * 1.2, 3),
+            transform: 'rotate(' + mAngle + ')',
+            fill: 'url(#pg-marigold-' + uid + ')',
+            opacity: (1 - mRing * 0.1).toFixed(2)
+          }));
+        }
+      }
+      head.appendChild(svgEl('circle', { r: 2.2, fill: '#8a2a10' }));
     }
     anchor.appendChild(head);
     group.appendChild(anchor);
@@ -629,32 +663,32 @@ function buildSpiralGalaxy(container){
   defs.appendChild(coreGrad);
   svg.appendChild(defs);
 
-  svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 60, fill: 'url(#spiral-core)' }));
+  svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 68, fill: 'url(#spiral-core)' }));
 
   var cx = 150, cy = 150;
-  var arms = 2;
+  var arms = 3;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
     var points = [];
     for (var t = 0; t <= 4.4; t += 0.11){
       var r = 4 * Math.exp(0.34 * t);
-      if (r > 128) break;
+      if (r > 132) break;
       var ang = t + baseAngle * Math.PI / 180;
       points.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang), r]);
     }
     var d = points.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
     svg.appendChild(svgEl('path', {
-      d: d, fill: 'none', stroke: '#f5e9a8', 'stroke-width': 2.2,
-      'stroke-linecap': 'round', opacity: 0.55
+      d: d, fill: 'none', stroke: '#fffef2', 'stroke-width': 3,
+      'stroke-linecap': 'round', opacity: 0.8
     }));
     points.forEach(function(p, i){
       if (i % 2 !== 0) return;
-      var fade = 1 - Math.min(p[2] / 128, 1);
+      var fade = 1 - Math.min(p[2] / 132, 1);
       svg.appendChild(svgEl('circle', {
-        cx: p[0] + (Math.random() * 6 - 3), cy: p[1] + (Math.random() * 6 - 3),
-        r: 0.7 + Math.random() * 1.3,
-        fill: Math.random() > 0.4 ? '#fff6cc' : 'var(--gold-1)',
-        opacity: (0.35 + fade * 0.55).toFixed(2)
+        cx: p[0] + (Math.random() * 7 - 3.5), cy: p[1] + (Math.random() * 7 - 3.5),
+        r: 1 + Math.random() * 1.8,
+        fill: Math.random() > 0.4 ? '#fffef2' : 'var(--gold-1)',
+        opacity: (0.5 + fade * 0.5).toFixed(2)
       }));
     });
   }
@@ -771,10 +805,10 @@ function makeStarfield(canvas, width, twinkle){
   canvas.style.height = H + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  var count = Math.floor((width * H) / 6500);
+  var count = Math.floor((width * H) / 2800);
   var stars = [];
   for (var i = 0; i < count; i++){
-    var gold = Math.random() < 0.22;
+    var gold = Math.random() < 0.3;
     stars.push({
       x: Math.random() * width,
       y: Math.random() * H,
@@ -825,7 +859,7 @@ var angleStart = 0;
 var hintHidden = false;
 
 function orbitRadius(){
-  return Math.min(320, Math.max(120, Math.min(window.innerWidth, window.innerHeight) * 0.34));
+  return Math.min(340, Math.max(140, Math.min(window.innerWidth, window.innerHeight) * 0.4));
 }
 
 function layoutRing(){
