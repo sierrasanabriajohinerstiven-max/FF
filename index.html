@@ -361,10 +361,14 @@ function buildBouquet(uid){
   var paperGrad = svgEl('linearGradient', { id: 'pg-paper-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
   paperGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--paper-1)' }));
   paperGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--paper-2)' }));
+  var leafGrad = svgEl('linearGradient', { id: 'pg-leaf-' + uid, x1: 0, y1: 0, x2: 1, y2: 0.3 });
+  leafGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#5c8a41' }));
+  leafGrad.appendChild(svgEl('stop', { offset: '55%', 'stop-color': '#4a7433' }));
+  leafGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#2f5322' }));
   var shadowGrad = svgEl('radialGradient', { id: 'pg-shadow-' + uid });
   shadowGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'rgba(0,0,0,0.5)' }));
   shadowGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'rgba(0,0,0,0)' }));
-  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(marigoldGrad); defs.appendChild(paperGrad); defs.appendChild(shadowGrad);
+  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(marigoldGrad); defs.appendChild(paperGrad); defs.appendChild(leafGrad); defs.appendChild(shadowGrad);
   svg.appendChild(defs);
 
   var group = svgEl('g', { class: 'bouquet-sway' });
@@ -422,21 +426,56 @@ function buildBouquet(uid){
     }));
   });
 
-  /* hojas: nacen justo donde el envoltorio de papel abraza los tallos y
-     caen hacia afuera, como en un ramo real. Posición y ángulo fijos
-     (relativos al punto de amarre) en vez de calculados sobre la curva del
-     tallo, que las hacía apuntar hacia arriba y lejos del ramo. 0°=derecha,
-     90°=abajo, 180°=izquierda, en el sistema de coordenadas de SVG. */
+  /* hojas: forma lanceolada con borde dentado y venas marcadas, generada
+     por puntos (como la hoja de girasol de referencia) en vez del óvalo
+     liso de antes. Nacen justo donde el envoltorio de papel abraza los
+     tallos y caen hacia afuera. Posición y ángulo fijos (relativos al
+     punto de amarre): 0°=derecha, 90°=abajo, 180°=izquierda. */
+  function buildLeaf(len, maxW, teeth){
+    var g = svgEl('g', {});
+    var steps = teeth * 2;
+    var top = [];
+    for (var i = 0; i <= steps; i++){
+      var s = i / steps;
+      var envelope = Math.sin(Math.PI * Math.pow(s, 0.72));
+      var tooth = (i > 0 && i < steps && i % 2 === 0) ? 0.74 : 1;
+      top.push([len * s, -maxW * envelope * tooth]);
+    }
+    var d = 'M0,0';
+    top.forEach(function(p){ d += ' L' + p[0].toFixed(1) + ',' + p[1].toFixed(1); });
+    for (var j = top.length - 2; j >= 0; j--){
+      d += ' L' + top[j][0].toFixed(1) + ',' + (-top[j][1]).toFixed(1);
+    }
+    d += ' Z';
+    g.appendChild(svgEl('path', { d: d, fill: 'url(#pg-leaf-' + uid + ')' }));
+
+    /* vena central + venas secundarias en diagonal, como en una hoja real */
+    g.appendChild(svgEl('path', {
+      d: 'M2,0 L' + (len - 3) + ',0', fill: 'none', stroke: '#213e17', 'stroke-width': 0.7, opacity: 0.65
+    }));
+    [0.22, 0.42, 0.62].forEach(function(s){
+      var vx = len * s;
+      var vw = maxW * Math.sin(Math.PI * Math.pow(s, 0.72)) * 0.72;
+      g.appendChild(svgEl('path', {
+        d: 'M' + vx.toFixed(1) + ',0 L' + (vx + vw * 0.7).toFixed(1) + ',' + (-vw).toFixed(1),
+        fill: 'none', stroke: '#213e17', 'stroke-width': 0.5, opacity: 0.5
+      }));
+      g.appendChild(svgEl('path', {
+        d: 'M' + vx.toFixed(1) + ',0 L' + (vx + vw * 0.7).toFixed(1) + ',' + vw.toFixed(1),
+        fill: 'none', stroke: '#213e17', 'stroke-width': 0.5, opacity: 0.5
+      }));
+    });
+    return g;
+  }
   [
-    { x: tieX - 30, y: tieY - 55, angle: 148, scale: 1.15 },
-    { x: tieX + 30, y: tieY - 55, angle: 32,  scale: 1.15 },
-    { x: tieX - 9,  y: tieY - 38, angle: 100, scale: 0.85 }
+    { x: tieX - 30, y: tieY - 55, angle: 154, scale: 1 },
+    { x: tieX + 30, y: tieY - 55, angle: 26,  scale: 1 },
+    { x: tieX - 9,  y: tieY - 38, angle: 108, scale: 0.72 }
   ].forEach(function(leafDef){
     var leaf = svgEl('g', {
       transform: 'translate(' + leafDef.x + ',' + leafDef.y + ') rotate(' + leafDef.angle + ') scale(' + leafDef.scale + ')'
     });
-    leaf.appendChild(svgEl('path', { d: 'M0,0 Q13,-11 28,0 Q13,11 0,0 Z', fill: '#4f7a3a' }));
-    leaf.appendChild(svgEl('path', { d: 'M2,0 Q14,-1 25,0', fill: 'none', stroke: '#345424', 'stroke-width': 0.8, opacity: 0.55 }));
+    leaf.appendChild(buildLeaf(40, 10, 5));
     group.appendChild(leaf);
   });
 
