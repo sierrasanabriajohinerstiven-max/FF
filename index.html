@@ -104,12 +104,24 @@ button{font-family:inherit;}
   pointer-events:none;
 }
 
-/* remolino de galaxia: brazos espirales generados por JS, girando despacio */
-.spiral-galaxy{
+/* remolino de galaxia: brazos espirales generados por JS.
+   IMPORTANTE: el achatado (para que combine con el aro elíptico) y la
+   rotación van en DOS capas separadas. Si se aplasta y LUEGO se rota, la
+   elipse resultante gira como forma rígida y en 90° queda "parada" -ancha
+   donde antes era angosta- saliéndose del aro. Por eso aquí se dibuja un
+   CÍRCULO perfecto (que puede rotar libremente sin cambiar de forma) en
+   la capa interior, y el aplastado va en la capa exterior, que nunca
+   rota: así el contorno final siempre es la misma elipse, sin importar
+   en qué ángulo esté el remolino por dentro. */
+.spiral-squash{
   position:fixed;
   top:50%;left:50%;
   pointer-events:none;
   z-index:1;
+  transform:translate(-50%,-50%) scaleY(0.55);
+}
+.spiral-galaxy{
+  width:100%;height:100%;
   animation:nebula-spin 70s linear infinite;
   will-change:transform;
 }
@@ -300,7 +312,9 @@ button{font-family:inherit;}
   <canvas id="bg-stars"></canvas>
   <div class="orbit-ring" id="orbit-ring" aria-hidden="true"></div>
   <div class="nebula" id="nebula"></div>
-  <div class="spiral-galaxy" id="spiral-galaxy"></div>
+  <div class="spiral-squash" id="spiral-squash">
+    <div class="spiral-galaxy" id="spiral-galaxy"></div>
+  </div>
   <div id="clusters-layer"></div>
 </div>
 
@@ -618,24 +632,21 @@ function buildSpiralGalaxy(container){
 
   svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
-  /* el aro de la órbita es una elipse achatada (0.55 en el eje vertical),
-     no un círculo -si el remolino se dibuja como círculo perfecto, sus
-     puntos siempre se quedan cortos arriba/abajo aunque lleguen bien a
-     los lados-. Aplicando el mismo achatado aquí, el remolino traza
-     justo el contorno del aro por todos lados. */
-  var SQUASH = 0.55;
+  /* círculo perfecto: el achatado que lo hace calzar con el aro elíptico
+     se aplica afuera, en la capa .spiral-squash que NO rota (ver CSS) -
+     así el remolino puede girar libre sin salirse nunca del aro. */
   var MIN_R = 55;
   var MAX_R = 140;
   var cx = 150, cy = 150;
 
   function polar(r, ang){
-    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang) * SQUASH];
+    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
   }
 
   /* puntos blancos súper pequeños, sin líneas ni brillo, en varios brazos
      repartidos en espejo (equidistantes) para que se note bien la forma
      de remolino. */
-  var arms = 34;
+  var arms = 24;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
     for (var t = 0; t <= 4.4; t += 0.055){
@@ -645,7 +656,7 @@ function buildSpiralGalaxy(container){
       var ang = t + baseAngle * Math.PI / 180;
       var pt = polar(r, ang);
       var px = pt[0] + (Math.random() * 4 - 2);
-      var py = pt[1] + (Math.random() * 4 - 2) * SQUASH;
+      var py = pt[1] + (Math.random() * 4 - 2);
       var fade = 1 - Math.min(r / MAX_R, 1);
       svg.appendChild(svgEl('circle', {
         cx: px.toFixed(1), cy: py.toFixed(1),
@@ -717,7 +728,7 @@ var CLUSTERS = [
 
 var clustersLayer = document.getElementById('clusters-layer');
 var orbitRing = document.getElementById('orbit-ring');
-var spiralGalaxyEl = document.getElementById('spiral-galaxy');
+var spiralSquashEl = document.getElementById('spiral-squash');
 
 function makeClusterEl(c, uid, extraClass){
   var btn = document.createElement('button');
@@ -881,15 +892,15 @@ function layoutRing(){
   orbitRing.style.marginLeft = -R + 'px';
   orbitRing.style.marginTop = -(R * 0.55) + 'px';
 
-  /* el remolino ya dibuja su propio achatado (mismo 0.55 que el aro), así
-     que el contenedor se escala sobre el radio horizontal R -su forma
-     elíptica interna hace que encaje también en el eje vertical-. */
+  /* el círculo interior se dimensiona sobre el radio horizontal R; el
+     aplastado a elipse lo pone la capa .spiral-squash (ver CSS), que no
+     rota, así que el resultado final siempre calza con el aro sin
+     importar el ángulo de giro. translate(-50%,-50%) en el CSS ya centra
+     el elemento, así que aquí solo hace falta el tamaño. */
   var spiralDotMaxPx = R * 0.96;
   var spiralBoxPx = spiralDotMaxPx * (300 / SPIRAL_MAX_R_VB);
-  spiralGalaxyEl.style.width = spiralBoxPx + 'px';
-  spiralGalaxyEl.style.height = spiralBoxPx + 'px';
-  spiralGalaxyEl.style.marginLeft = -(spiralBoxPx / 2) + 'px';
-  spiralGalaxyEl.style.marginTop = -(spiralBoxPx / 2) + 'px';
+  spiralSquashEl.style.width = spiralBoxPx + 'px';
+  spiralSquashEl.style.height = spiralBoxPx + 'px';
 }
 
 function positionOrbit(){
