@@ -1,4 +1,4 @@
-<title>Galaxia de Girasoles</title>
+<title>Órbita de Girasoles</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
 /* =========================================================
@@ -88,23 +88,20 @@ button{font-family:inherit;}
   pointer-events:none;
 }
 
-#world{
-  position:absolute;
-  top:0;left:0;
-  height:100%;
-  will-change:transform;
-}
-#world-stars{
-  position:absolute;
-  inset:0;
-  z-index:0;
+/* anillo guía: marca la órbita en la que giran los racimos */
+.orbit-ring{
+  position:fixed;
+  top:50%;left:50%;
+  border:1px dashed rgba(250,204,21,0.16);
+  border-radius:50%;
   pointer-events:none;
+  z-index:1;
 }
 
 /* nebulosa: vórtice brillante que gira lentamente, foco visual central */
 .nebula{
-  position:absolute;
-  top:50%;
+  position:fixed;
+  top:50%;left:50%;
   width:520px;height:520px;
   margin:-260px 0 0 -260px;
   border-radius:50%;
@@ -117,13 +114,14 @@ button{font-family:inherit;}
 }
 @keyframes nebula-spin{to{transform:rotate(360deg);}}
 
-/* corazón de partículas sobre la nebulosa */
+/* corazón de partículas sobre la nebulosa: el punto fijo del que todo cuelga */
 .hero-heart{
-  position:absolute;
-  top:50%;
+  position:fixed;
+  top:50%;left:50%;
   width:170px;height:154px;
   margin:-330px 0 0 -85px;
   pointer-events:none;
+  z-index:2;
 }
 .hero-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 22px rgba(250,204,21,0.6));animation:heart-beat 2.8s ease-in-out infinite;}
 @keyframes heart-beat{
@@ -148,7 +146,7 @@ button{font-family:inherit;}
    5. RACIMOS — ramos flotantes, tocables, con su etiqueta
    ========================================================= */
 .cluster{
-  position:absolute;
+  position:fixed;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -157,29 +155,29 @@ button{font-family:inherit;}
   background:none;
   padding:0;
   cursor:pointer;
-  transform:translate(-50%,-50%);
+  transform:translate(-50%,-50%) scale(var(--depth,1));
   animation:cluster-bob var(--bobdur,5.5s) ease-in-out infinite;
   animation-delay:var(--bobdelay,0s);
 }
 @keyframes cluster-bob{
-  0%,100%{transform:translate(-50%,-50%) translateY(0) rotate(var(--tilt,0deg));}
-  50%{transform:translate(-50%,-50%) translateY(-12px) rotate(calc(var(--tilt,0deg) * -1));}
+  0%,100%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(0) rotate(var(--tilt,0deg));}
+  50%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(-10px) rotate(calc(var(--tilt,0deg) * -1));}
 }
-.cluster-bouquet{width:var(--bqw,118px);filter:drop-shadow(0 0 16px rgba(250,204,21,0.35));transition:filter .3s ease;}
+.cluster-bouquet{width:var(--bqw,clamp(72px,20vw,112px));filter:drop-shadow(0 0 16px rgba(250,204,21,0.35));transition:filter .3s ease;}
 .cluster:hover .cluster-bouquet, .cluster:focus-visible .cluster-bouquet{filter:drop-shadow(0 0 24px rgba(250,204,21,0.65));}
-.cluster.hero .cluster-bouquet{width:170px;}
+.cluster.hero .cluster-bouquet{width:clamp(110px,30vw,170px);}
 .cluster-label{
   display:inline-flex;
   align-items:center;
-  gap:6px;
-  padding:6px 14px;
+  gap:5px;
+  padding:5px 12px;
   border-radius:999px;
   background:var(--glass-bg);
   border:1px solid var(--glass-border);
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   font-family:var(--font-script);
-  font-size:1.15rem;
+  font-size:clamp(.95rem,3.6vw,1.15rem);
   color:var(--gold-1);
   white-space:nowrap;
 }
@@ -257,25 +255,6 @@ button{font-family:inherit;}
 }
 .hint-pill.hide{opacity:0;pointer-events:none;}
 @keyframes hint-nudge{0%,100%{transform:translateX(-50%);}50%{transform:translateX(calc(-50% + 6px));}}
-
-.progress-track{
-  position:fixed;
-  left:50%;
-  bottom:calc(22px + env(safe-area-inset-bottom,0px));
-  transform:translateX(-50%);
-  z-index:20;
-  width:min(70vw,260px);
-  height:4px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.12);
-  overflow:hidden;
-}
-.progress-fill{
-  height:100%;
-  width:40px;
-  border-radius:999px;
-  background:linear-gradient(90deg, var(--gold-3), var(--gold-1));
-}
 
 /* =========================================================
    7. MODAL — la carta que se abre al tocar un racimo
@@ -392,33 +371,31 @@ button{font-family:inherit;}
 </div>
 
 <!-- =========================================================
-     ESCENARIO PRINCIPAL: mundo pannable con la galaxia de flores
+     ESCENARIO PRINCIPAL: todo gira alrededor de un único punto central
      ========================================================= -->
 <div id="stage">
   <canvas id="bg-stars"></canvas>
-  <div id="world">
-    <canvas id="world-stars"></canvas>
-    <div class="nebula" id="nebula"></div>
-    <div class="hero-heart" id="hero-heart">
-      <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#fff6cc"/>
-            <stop offset="45%" stop-color="var(--gold-1)"/>
-            <stop offset="100%" stop-color="var(--gold-3)"/>
-          </linearGradient>
-        </defs>
-        <path fill="url(#heartGrad)" d="M16 28.5 2.6 15.7C-1.9 11.2 0.4 3.6 6.7 2.4c3.4-0.6 6.8 0.9 8.7 3.7 1.9-2.8 5.3-4.3 8.7-3.7 6.3 1.2 8.6 8.8 4.1 13.3z"/>
-      </svg>
-      <span class="orbit-dot" style="animation-delay:0s"></span>
-      <span class="orbit-dot" style="animation-delay:-3s"></span>
-      <span class="orbit-dot" style="animation-delay:-6s"></span>
-    </div>
-    <div id="clusters-layer"></div>
+  <div class="orbit-ring" id="orbit-ring" aria-hidden="true"></div>
+  <div class="nebula" id="nebula"></div>
+  <div class="hero-heart" id="hero-heart">
+    <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff6cc"/>
+          <stop offset="45%" stop-color="var(--gold-1)"/>
+          <stop offset="100%" stop-color="var(--gold-3)"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#heartGrad)" d="M16 28.5 2.6 15.7C-1.9 11.2 0.4 3.6 6.7 2.4c3.4-0.6 6.8 0.9 8.7 3.7 1.9-2.8 5.3-4.3 8.7-3.7 6.3 1.2 8.6 8.8 4.1 13.3z"/>
+    </svg>
+    <span class="orbit-dot" style="animation-delay:0s"></span>
+    <span class="orbit-dot" style="animation-delay:-3s"></span>
+    <span class="orbit-dot" style="animation-delay:-6s"></span>
   </div>
+  <div id="clusters-layer"></div>
 
-  <button class="pan-btn pan-left" id="pan-left" type="button" aria-label="Explorar a la izquierda">&#8249;</button>
-  <button class="pan-btn pan-right" id="pan-right" type="button" aria-label="Explorar a la derecha">&#8250;</button>
+  <button class="pan-btn pan-left" id="pan-left" type="button" aria-label="Girar la galaxia hacia la izquierda">&#8634;</button>
+  <button class="pan-btn pan-right" id="pan-right" type="button" aria-label="Girar la galaxia hacia la derecha">&#8635;</button>
 </div>
 
 <div class="top-bar">
@@ -426,9 +403,7 @@ button{font-family:inherit;}
   <p class="top-title">para Fernanda</p>
 </div>
 
-<p class="hint-pill" id="hint-pill">Desliza para explorar tu galaxia &#8596;</p>
-
-<div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+<p class="hint-pill" id="hint-pill">Arrastra para girar la galaxia &#8635;</p>
 
 <!-- =========================================================
      MODAL: la carta que se abre al tocar cada racimo
@@ -597,53 +572,42 @@ styleTag.textContent = '@keyframes bq-shimmer{0%,100%{transform:rotate(-2.5deg) 
 document.head.appendChild(styleTag);
 
 /* =========================================================
-   MÓDULO 2 — la galaxia: racimos esparcidos por el mundo pannable
+   MÓDULO 2 — la galaxia: racimos que orbitan un único punto central
    ========================================================= */
-var WORLD_WIDTH = 4000;
+var HERO = { label: 'Mi amor', hero: true,
+  text: "Fernanda, hoy es el Día Internacional de las Flores Amarillas y quise construirte un universo entero solo para decirte esto:\n\ncontigo hasta lo más pequeño se siente enorme. Cada girasol de esta galaxia, cada luz dorada, es una forma distinta de decir lo mismo: que me haces muy feliz.\n\nFeliz día de las flores amarillas, mi amor." };
 
 var CLUSTERS = [
-  { x: 280,  y: 55,  label: 'Eres mi sol',
+  { label: 'Eres mi sol',
     text: 'Cada mañana que despierto pensando en ti confirmo esto: eres la luz que hace que todo lo demás tenga sentido.' },
-  { x: 760,  y: -70, label: 'Te amo',
+  { label: 'Te amo',
     text: 'No hay una sola flor amarilla que alcance para decir cuánto te amo, así que mejor te construí un jardín entero de ellas.' },
-  { x: 1240, y: 80,  label: 'Eres única',
+  { label: 'Eres única',
     text: 'He visto muchos cielos y muchas cosas bonitas en el camino, y ninguna se compara contigo.' },
-  { x: 1900, y: 0,   label: 'Mi amor', hero: true,
-    text: "Fernanda, hoy es el Día Internacional de las Flores Amarillas y quise construirte un universo entero solo para decirte esto:\n\ncontigo hasta lo más pequeño se siente enorme. Cada girasol de esta galaxia, cada luz dorada, es una forma distinta de decir lo mismo: que me haces muy feliz.\n\nFeliz día de las flores amarillas, mi amor." },
-  { x: 2500, y: -65, label: 'Amor de mi vida',
+  { label: 'Amor de mi vida',
     text: 'Si el 21 de septiembre existe para las flores amarillas, que exista también un día solo para recordarte cuánto significas para mí.' },
-  { x: 2980, y: 75,  label: 'Me encantas',
+  { label: 'Me encantas',
     text: 'Me encantas hasta en los detalles más pequeños, de esos que nadie más nota pero yo sí.' },
-  { x: 3460, y: -45, label: 'Eres preciosa',
+  { label: 'Eres preciosa',
     text: 'Preciosa no alcanza a describirte, pero es lo más cerca que las palabras logran llegar.' },
-  { x: 3820, y: 40,  label: 'Siempre juntos',
+  { label: 'Siempre juntos',
     text: 'Pase lo que pase, quiero seguir construyendo jardines contigo. Siempre juntos.' }
 ];
 
-var world = document.getElementById('world');
 var clustersLayer = document.getElementById('clusters-layer');
-var nebula = document.getElementById('nebula');
-var heroHeart = document.getElementById('hero-heart');
+var orbitRing = document.getElementById('orbit-ring');
 
-world.style.width = WORLD_WIDTH + 'px';
-var heroCluster = CLUSTERS.filter(function(c){ return c.hero; })[0];
-nebula.style.left = heroCluster.x + 'px';
-heroHeart.style.left = heroCluster.x + 'px';
-
-CLUSTERS.forEach(function(c, i){
+function makeClusterEl(c, uid, extraClass){
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'cluster' + (c.hero ? ' hero' : '');
-  btn.style.left = c.x + 'px';
-  btn.style.top = 'calc(50% + ' + c.y + 'px)';
+  btn.className = 'cluster' + (extraClass ? ' ' + extraClass : '');
   btn.style.setProperty('--bobdur', (4.6 + Math.random() * 2).toFixed(2) + 's');
   btn.style.setProperty('--bobdelay', (Math.random() * 2).toFixed(2) + 's');
-  btn.style.setProperty('--tilt', ((i % 2 === 0 ? 1 : -1) * (2 + Math.random() * 2)).toFixed(1) + 'deg');
-  if (c.hero) btn.style.setProperty('--bqw', '170px');
+  btn.style.setProperty('--tilt', ((uid % 2 === 0 ? 1 : -1) * (2 + Math.random() * 2)).toFixed(1) + 'deg');
 
   var bWrap = document.createElement('span');
   bWrap.className = 'cluster-bouquet';
-  bWrap.appendChild(buildBouquet('c' + i));
+  bWrap.appendChild(buildBouquet('c' + uid));
   btn.appendChild(bWrap);
 
   var label = document.createElement('span');
@@ -652,11 +616,29 @@ CLUSTERS.forEach(function(c, i){
   btn.appendChild(label);
 
   btn.addEventListener('click', function(){ openModal(c); });
-  clustersLayer.appendChild(btn);
+  return btn;
+}
+
+/* el racimo central: el único punto fijo, no orbita */
+var heroEl = makeClusterEl(HERO, 99, 'hero');
+heroEl.style.left = '50%';
+heroEl.style.top = '50%';
+heroEl.style.setProperty('--bqw', '170px');
+clustersLayer.appendChild(heroEl);
+
+/* los demás racimos: cada uno gira alrededor del centro a su propio radio */
+var orbitItems = CLUSTERS.map(function(c, i){
+  var el = makeClusterEl(c, i);
+  clustersLayer.appendChild(el);
+  return {
+    el: el,
+    baseAngle: (360 / CLUSTERS.length) * i + (Math.random() * 14 - 7),
+    radiusFactor: 0.82 + Math.random() * 0.32
+  };
 });
 
 /* =========================================================
-   MÓDULO 3 — estrellas: cielo fijo + campo estelar del mundo
+   MÓDULO 3 — estrellas: cielo fijo de fondo
    ========================================================= */
 function makeStarfield(canvas, width, twinkle){
   var ctx = canvas.getContext('2d');
@@ -698,67 +680,76 @@ function makeStarfield(canvas, width, twinkle){
 }
 
 makeStarfield(document.getElementById('bg-stars'), window.innerWidth, true);
-makeStarfield(document.getElementById('world-stars'), WORLD_WIDTH, true);
 
 /* =========================================================
-   MÓDULO 4 — navegación: arrastrar, rueda horizontal, flechas, teclado
+   MÓDULO 4 — órbita: todo gira alrededor del corazón central.
+   Arrastrar, la rueda, las flechas y el teclado giran la galaxia;
+   además gira sola muy lentamente, como un sistema solar.
    ========================================================= */
 var stage = document.getElementById('stage');
 var panLeftBtn = document.getElementById('pan-left');
 var panRightBtn = document.getElementById('pan-right');
 var hintPill = document.getElementById('hint-pill');
-var progressFill = document.getElementById('progress-fill');
-var progressTrack = document.querySelector('.progress-track');
 
-var panX = 0;
+var angleOffset = 0;
+var AUTOSPIN = REDUCE ? 0 : 0.0065;      // grados por frame: una vuelta completa cada ~7 min
 var dragging = false;
 var dragStartX = 0;
-var panStartX = 0;
+var angleStart = 0;
 var hintHidden = false;
 
-function bounds(){
-  var vw = window.innerWidth;
-  var min = Math.min(0, -(WORLD_WIDTH - vw));
-  return { min: min, max: 0 };
+function orbitRadius(){
+  return Math.min(320, Math.max(120, Math.min(window.innerWidth, window.innerHeight) * 0.34));
 }
-function clampPan(v){
-  var b = bounds();
-  return Math.min(b.max, Math.max(b.min, v));
+
+function layoutRing(){
+  var R = orbitRadius();
+  orbitRing.style.width = (R * 2) + 'px';
+  orbitRing.style.height = (R * 1.05 * 2) + 'px';
+  orbitRing.style.marginLeft = -R + 'px';
+  orbitRing.style.marginTop = -(R * 1.05) + 'px';
 }
-function applyPan(){
-  world.style.transform = 'translateX(' + panX + 'px)';
-  var b = bounds();
-  var range = b.max - b.min;
-  var ratio = range === 0 ? 0 : (panX - b.min) / range;
-  var trackW = progressTrack.clientWidth;
-  var fillW = Math.max(30, trackW * 0.16);
-  progressFill.style.width = fillW + 'px';
-  progressFill.style.transform = 'translateX(' + ((trackW - fillW) * (1 - ratio)) + 'px)';
+
+function positionOrbit(){
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2;
+  var R = orbitRadius();
+  orbitItems.forEach(function(item){
+    var angleRad = (item.baseAngle + angleOffset) * Math.PI / 180;
+    var r = R * item.radiusFactor;
+    var x = cx + Math.cos(angleRad) * r;
+    var y = cy + Math.sin(angleRad) * r * 0.55; // órbita achatada, efecto de perspectiva
+    var depth = (Math.sin(angleRad) + 1) / 2;   // 0 = fondo, 1 = frente
+    item.el.style.left = x + 'px';
+    item.el.style.top = y + 'px';
+    item.el.style.setProperty('--depth', (0.72 + depth * 0.4).toFixed(2));
+    item.el.style.opacity = (0.55 + depth * 0.45).toFixed(2);
+    item.el.style.zIndex = String(Math.round(depth * 100) + 3);
+  });
 }
-function setPan(v, smooth){
-  panX = clampPan(v);
-  world.style.transition = smooth ? 'transform .5s cubic-bezier(.22,1,.36,1)' : 'none';
-  applyPan();
-  if (smooth){ setTimeout(function(){ world.style.transition = 'none'; }, 520); }
-  hideHint();
-}
+
 function hideHint(){
   if (hintHidden) return;
   hintHidden = true;
   hintPill.classList.add('hide');
 }
 
+function spinLoop(){
+  angleOffset += AUTOSPIN;
+  positionOrbit();
+  requestAnimationFrame(spinLoop);
+}
+
 stage.addEventListener('pointerdown', function(e){
   dragging = true;
   stage.classList.add('dragging');
   dragStartX = e.clientX;
-  panStartX = panX;
+  angleStart = angleOffset;
   stage.setPointerCapture(e.pointerId);
 });
 stage.addEventListener('pointermove', function(e){
   if (!dragging) return;
-  panX = clampPan(panStartX + (e.clientX - dragStartX));
-  applyPan();
+  angleOffset = angleStart + (e.clientX - dragStartX) * 0.28;
   if (Math.abs(e.clientX - dragStartX) > 6) hideHint();
 });
 function endDrag(){
@@ -770,19 +761,23 @@ stage.addEventListener('pointercancel', endDrag);
 
 stage.addEventListener('wheel', function(e){
   var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-  setPan(panX - delta, false);
+  angleOffset += delta * 0.12;
+  hideHint();
   e.preventDefault();
 }, { passive: false });
 
-panLeftBtn.addEventListener('click', function(){ setPan(panX + 420, true); });
-panRightBtn.addEventListener('click', function(){ setPan(panX - 420, true); });
+panLeftBtn.addEventListener('click', function(){ angleOffset -= 28; hideHint(); });
+panRightBtn.addEventListener('click', function(){ angleOffset += 28; hideHint(); });
 
 document.addEventListener('keydown', function(e){
-  if (e.key === 'ArrowRight') setPan(panX - 300, true);
-  if (e.key === 'ArrowLeft') setPan(panX + 300, true);
+  if (e.key === 'ArrowRight'){ angleOffset += 20; hideHint(); }
+  if (e.key === 'ArrowLeft'){ angleOffset -= 20; hideHint(); }
 });
 
-window.addEventListener('resize', function(){ setPan(panX, false); });
+window.addEventListener('resize', layoutRing);
+layoutRing();
+positionOrbit();
+requestAnimationFrame(spinLoop);
 
 /* =========================================================
    MÓDULO 5 — modal: abrir/cerrar carta + carta especial del centro
@@ -891,9 +886,6 @@ document.addEventListener('keydown', function(e){
     if (elapsed < 1900 && !REDUCE) requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-
-  /* centrar la galaxia sobre el ramo central antes de revelarla */
-  setPan(-(heroCluster.x - window.innerWidth / 2), false);
 
   setTimeout(function(){
     introEl.classList.add('fade-out');
