@@ -761,13 +761,14 @@ function makeStarfield(canvas, width, twinkle){
   sctx.globalAlpha = 1;
 
   var goldStars = [];
+  var TWINKLE_SPEED = (Math.PI * 2) / 3000; /* 1 parpadeo completo cada 3s */
   for (var g = 0; g < goldCount; g++){
     goldStars.push({
       x: Math.random() * width,
       y: Math.random() * H,
       r: Math.random() * 2.2 + 1.1,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.006 + Math.random() * 0.008 /* parpadeo más lento y suave */
+      speed: TWINKLE_SPEED * (0.9 + Math.random() * 0.2)
     });
   }
 
@@ -786,12 +787,8 @@ function makeStarfield(canvas, width, twinkle){
       var s = goldStars[i];
       var tw = twinkle && !REDUCE ? (Math.sin(t * s.speed + s.phase) * 0.5 + 0.5) : 0.75;
       var a = 0.25 + tw * 0.75;
-      ctx.globalAlpha = a * 0.35;
-      ctx.fillStyle = '#ffe08a';
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * 2.4, 0, Math.PI * 2);
-      ctx.fill();
       ctx.globalAlpha = a;
+      ctx.fillStyle = '#ffe08a';
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
