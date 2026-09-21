@@ -215,29 +215,8 @@ button{font-family:inherit;}
 .cluster:focus-visible .cluster-label{text-decoration:underline;}
 
 /* =========================================================
-   6. CONTROLES DE NAVEGACIÓN — flechas, pista y barra de progreso
+   6. CONTROLES DE NAVEGACIÓN
    ========================================================= */
-.pan-btn{
-  position:fixed;
-  top:50%;
-  transform:translateY(-50%);
-  z-index:20;
-  width:44px;height:44px;
-  border-radius:50%;
-  border:1px solid var(--glass-border);
-  background:var(--glass-bg);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  color:var(--gold-1);
-  font-size:1.4rem;
-  line-height:1;
-  cursor:pointer;
-  transition:background .2s ease, transform .2s ease;
-}
-.pan-btn:hover{background:rgba(250,204,21,0.14);}
-.pan-left{left:14px;}
-.pan-right{right:14px;}
-
 .top-bar{
   position:fixed;
   top:calc(16px + env(safe-area-inset-top,0px));
@@ -387,7 +366,6 @@ button{font-family:inherit;}
   .spiral-galaxy,.hero-heart svg,.orbit-dot,.heart-dust span,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
 @media (max-width:640px){
-  .pan-btn{width:38px;height:38px;font-size:1.2rem;}
   .top-title{font-size:1.6rem;}
 }
 </style>
@@ -425,9 +403,6 @@ button{font-family:inherit;}
     <div class="heart-dust" id="heart-dust"></div>
   </div>
   <div id="clusters-layer"></div>
-
-  <button class="pan-btn pan-left" id="pan-left" type="button" aria-label="Girar la galaxia hacia la izquierda">&#8634;</button>
-  <button class="pan-btn pan-right" id="pan-right" type="button" aria-label="Girar la galaxia hacia la derecha">&#8635;</button>
 </div>
 
 <div class="top-bar">
@@ -805,7 +780,7 @@ function makeStarfield(canvas, width, twinkle){
   canvas.style.height = H + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  var count = Math.floor((width * H) / 2800);
+  var count = Math.min(850, Math.floor((width * H) / 2800));
   var stars = [];
   for (var i = 0; i < count; i++){
     var gold = Math.random() < 0.3;
@@ -819,19 +794,28 @@ function makeStarfield(canvas, width, twinkle){
       glow: gold
     });
   }
+  /* nota de rendimiento: ctx.shadowBlur es costoso con cientos de puntos por
+     frame, así que el "glow" de las motas doradas se simula con un segundo
+     círculo grande y tenue debajo, en vez de shadowBlur. */
   function draw(t){
     ctx.clearRect(0, 0, width, H);
     for (var i = 0; i < stars.length; i++){
       var s = stars[i];
       var tw = twinkle && !REDUCE ? (Math.sin(t * s.speed + s.phase) * 0.5 + 0.5) : 0.75;
-      ctx.globalAlpha = (0.25 + tw * 0.75) * (s.glow ? 0.85 : 1);
+      var a = 0.25 + tw * 0.75;
+      if (s.glow){
+        ctx.globalAlpha = a * 0.35;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = a;
       ctx.fillStyle = s.color;
-      if (s.glow){ ctx.shadowColor = s.color; ctx.shadowBlur = 6; } else { ctx.shadowBlur = 0; }
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
     if (twinkle && !REDUCE) requestAnimationFrame(draw);
   }
@@ -843,12 +827,10 @@ makeStarfield(document.getElementById('bg-stars'), window.innerWidth, true);
 
 /* =========================================================
    MÓDULO 4 — órbita: todo gira alrededor del corazón central.
-   Arrastrar, la rueda, las flechas y el teclado giran la galaxia;
+   Arrastrar, la rueda y las flechas del teclado giran la galaxia;
    además gira sola muy lentamente, como un sistema solar.
    ========================================================= */
 var stage = document.getElementById('stage');
-var panLeftBtn = document.getElementById('pan-left');
-var panRightBtn = document.getElementById('pan-right');
 var hintPill = document.getElementById('hint-pill');
 
 var angleOffset = 0;
@@ -925,9 +907,6 @@ stage.addEventListener('wheel', function(e){
   hideHint();
   e.preventDefault();
 }, { passive: false });
-
-panLeftBtn.addEventListener('click', function(){ angleOffset -= 28; hideHint(); });
-panRightBtn.addEventListener('click', function(){ angleOffset += 28; hideHint(); });
 
 document.addEventListener('keydown', function(e){
   if (e.key === 'ArrowRight'){ angleOffset += 20; hideHint(); }
