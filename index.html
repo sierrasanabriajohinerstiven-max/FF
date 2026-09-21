@@ -60,6 +60,15 @@ button{font-family:inherit;}
   cursor:grab;
 }
 #stage.dragging{cursor:grabbing;}
+/* mientras se arrastra para girar la galaxia, se pausan las animaciones
+   ambientales (remolino, vaivén de pétalos, flotado de racimos) para que
+   toda la potencia del navegador se vaya en mover la órbita sin trabarse */
+#stage.dragging .spiral-galaxy,
+#stage.dragging .bouquet-sway,
+#stage.dragging .bq-head,
+#stage.dragging .cluster{
+  animation-play-state:paused;
+}
 
 #bg-stars{
   position:fixed;
@@ -428,9 +437,17 @@ function buildBouquet(uid){
 
   /* hojas: forma lanceolada con borde dentado y venas marcadas, generada
      por puntos (como la hoja de girasol de referencia) en vez del óvalo
-     liso de antes. Nacen justo donde el envoltorio de papel abraza los
-     tallos y caen hacia afuera. Posición y ángulo fijos (relativos al
-     punto de amarre): 0°=derecha, 90°=abajo, 180°=izquierda. */
+     liso de antes. Una por tallo, a distintas alturas -no solo cerca de
+     la base-, mirando hacia arriba (el ángulo es la dirección real desde
+     el punto de amarre hasta ese punto del tallo, que siempre apunta
+     hacia arriba y hacia afuera, nunca hacia abajo). */
+  function bezierPoint(c, u){
+    var mu = 1 - u;
+    return [
+      mu * mu * c.p0[0] + 2 * mu * u * c.p1[0] + u * u * c.p2[0],
+      mu * mu * c.p0[1] + 2 * mu * u * c.p1[1] + u * u * c.p2[1]
+    ];
+  }
   function buildLeaf(len, maxW, teeth){
     var g = svgEl('g', {});
     var steps = teeth * 2;
@@ -453,7 +470,7 @@ function buildBouquet(uid){
     g.appendChild(svgEl('path', {
       d: 'M2,0 L' + (len - 3) + ',0', fill: 'none', stroke: '#213e17', 'stroke-width': 0.7, opacity: 0.65
     }));
-    [0.22, 0.42, 0.62].forEach(function(s){
+    [0.28, 0.55].forEach(function(s){
       var vx = len * s;
       var vw = maxW * Math.sin(Math.PI * Math.pow(s, 0.72)) * 0.72;
       g.appendChild(svgEl('path', {
@@ -467,15 +484,17 @@ function buildBouquet(uid){
     });
     return g;
   }
-  [
-    { x: tieX - 30, y: tieY - 55, angle: 154, scale: 1 },
-    { x: tieX + 30, y: tieY - 55, angle: 26,  scale: 1 },
-    { x: tieX - 9,  y: tieY - 38, angle: 108, scale: 0.72 }
-  ].forEach(function(leafDef){
+  var leafStems = heads.filter(function(h){ return h.type !== 'marigold'; });
+  leafStems.forEach(function(h, i){
+    var c = stemCurve(h);
+    var u = 0.3 + (i % 3) * 0.14; /* distintas alturas a lo largo del tallo */
+    var p = bezierPoint(c, u);
+    var radialDeg = Math.atan2(p[1] - tieY, p[0] - tieX) * 180 / Math.PI;
+    var tilt = (i % 2 === 0 ? 1 : -1) * (6 + Math.random() * 10);
     var leaf = svgEl('g', {
-      transform: 'translate(' + leafDef.x + ',' + leafDef.y + ') rotate(' + leafDef.angle + ') scale(' + leafDef.scale + ')'
+      transform: 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ') rotate(' + (radialDeg + tilt).toFixed(1) + ') scale(' + (0.78 + Math.random() * 0.3).toFixed(2) + ')'
     });
-    leaf.appendChild(buildLeaf(40, 10, 5));
+    leaf.appendChild(buildLeaf(34, 8.5, 5));
     group.appendChild(leaf);
   });
 
@@ -599,40 +618,29 @@ function buildSpiralGalaxy(container){
 
   svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
-  /* el radio crecía demasiado despacio (r llegaba apenas a ~18 en vez de
-     ~130), así que todo el remolino -línea y polvo- quedaba amontonado
-     en el centro, justo encima del ramo. Con el exponente correcto el
-     brazo sí se abre hacia afuera; además se salta por completo el tramo
-     cercano al centro (r<48) para que no quede nada sobre el ramo. */
+  /* solo puntos blancos, sin líneas ni brillo (sin filtros/blur), en dos
+     brazos en espejo (180° uno del otro). El radio salta el tramo cercano
+     al centro (r<62) para que nada quede sobre el ramo. */
   var MIN_R = 62;
   var cx = 150, cy = 150;
-  var arms = 3;
+  var arms = 2;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
-    var points = [];
-    for (var t = 0; t <= 4.4; t += 0.11){
+    for (var t = 0; t <= 4.4; t += 0.055){
       var r = 4 * Math.exp(0.79 * t);
       if (r > 132) break;
       if (r < MIN_R) continue;
       var ang = t + baseAngle * Math.PI / 180;
-      points.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang), r]);
-    }
-    if (points.length < 2) continue;
-    var d = points.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-    svg.appendChild(svgEl('path', {
-      d: d, fill: 'none', stroke: '#fffef2', 'stroke-width': 1.5,
-      'stroke-linecap': 'round', opacity: 0.4
-    }));
-    points.forEach(function(p, i){
-      if (i % 2 !== 0) return;
-      var fade = 1 - Math.min(p[2] / 132, 1);
+      var px = cx + r * Math.cos(ang) + (Math.random() * 7 - 3.5);
+      var py = cy + r * Math.sin(ang) + (Math.random() * 7 - 3.5);
+      var fade = 1 - Math.min(r / 132, 1);
       svg.appendChild(svgEl('circle', {
-        cx: p[0] + (Math.random() * 7 - 3.5), cy: p[1] + (Math.random() * 7 - 3.5),
-        r: 1 + Math.random() * 1.8,
-        fill: Math.random() > 0.4 ? '#fffef2' : 'var(--gold-1)',
-        opacity: (0.5 + fade * 0.5).toFixed(2)
+        cx: px.toFixed(1), cy: py.toFixed(1),
+        r: (0.9 + Math.random() * 1.5).toFixed(1),
+        fill: '#ffffff',
+        opacity: (0.45 + fade * 0.5).toFixed(2)
       }));
-    });
+    }
   }
   container.appendChild(svg);
 }
