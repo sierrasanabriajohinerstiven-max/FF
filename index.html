@@ -50,32 +50,6 @@ button{font-family:inherit;}
 [hidden]{display:none !important;}
 
 /* =========================================================
-   3. INTRO — efecto de "salto a hiperespacio" antes de llegar a la galaxia
-   ========================================================= */
-#intro{
-  position:fixed;
-  inset:0;
-  z-index:100;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:16px;
-  background:var(--bg-1);
-  transition:opacity .9s ease;
-}
-#intro.fade-out{opacity:0;pointer-events:none;}
-#intro canvas{position:absolute;inset:0;}
-#intro p{
-  position:relative;
-  font-family:var(--font-sans);
-  font-size:.8rem;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  color:var(--gold-1);
-}
-
-/* =========================================================
    4. ESCENARIO — capa fija (viewport) que contiene el mundo pannable
    ========================================================= */
 #stage{
@@ -112,9 +86,9 @@ button{font-family:inherit;}
   margin:-340px 0 0 -340px;
   border-radius:50%;
   background:
-    radial-gradient(circle, rgba(255,246,204,0.36), transparent 26%),
-    radial-gradient(circle, rgba(201,217,74,0.34), transparent 52%),
-    radial-gradient(circle, rgba(250,204,21,0.2), transparent 72%);
+    radial-gradient(circle, rgba(255,246,204,0.14), transparent 15%),
+    radial-gradient(circle, rgba(201,217,74,0.26), transparent 48%),
+    radial-gradient(circle, rgba(250,204,21,0.16), transparent 70%);
   filter:blur(12px);
   pointer-events:none;
 }
@@ -177,7 +151,7 @@ button{font-family:inherit;}
   0%,100%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(0) rotate(var(--tilt,0deg));}
   50%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(-10px) rotate(calc(var(--tilt,0deg) * -1));}
 }
-.cluster-bouquet{width:var(--bqw,clamp(72px,20vw,112px));filter:drop-shadow(0 0 7px rgba(250,204,21,0.4));transition:filter .3s ease;}
+.cluster-bouquet{width:var(--bqw,clamp(62px,16vw,100px));filter:drop-shadow(0 0 7px rgba(250,204,21,0.4));transition:filter .3s ease;}
 .cluster:hover .cluster-bouquet, .cluster:focus-visible .cluster-bouquet{filter:drop-shadow(0 0 11px rgba(250,204,21,0.7));}
 .cluster.hero .cluster-bouquet{width:clamp(110px,30vw,170px);}
 .cluster-label{
@@ -323,14 +297,6 @@ button{font-family:inherit;}
   .spiral-galaxy,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
 </style>
-
-<!-- =========================================================
-     INTRO: salto a hiperespacio antes de llegar a la galaxia
-     ========================================================= -->
-<div id="intro">
-  <canvas id="warp-canvas"></canvas>
-  <p>Preparando tu universo&hellip;</p>
-</div>
 
 <!-- =========================================================
      ESCENARIO PRINCIPAL: todo gira alrededor de un único punto central
@@ -586,13 +552,13 @@ function buildSpiralGalaxy(container){
   var svg = svgEl('svg', { viewBox: '0 0 300 300' });
   var defs = svgEl('defs', {});
   var coreGrad = svgEl('radialGradient', { id: 'spiral-core' });
-  coreGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#fffdf0' }));
-  coreGrad.appendChild(svgEl('stop', { offset: '35%', 'stop-color': '#ffe789' }));
+  coreGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'rgba(255,253,240,0.55)' }));
+  coreGrad.appendChild(svgEl('stop', { offset: '40%', 'stop-color': 'rgba(255,231,137,0.32)' }));
   coreGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'transparent' }));
   defs.appendChild(coreGrad);
   svg.appendChild(defs);
 
-  svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 68, fill: 'url(#spiral-core)' }));
+  svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
   var cx = 150, cy = 150;
   var arms = 3;
@@ -682,7 +648,7 @@ function makeClusterEl(c, uid, extraClass){
 var heroEl = makeClusterEl(HERO, 99, 'hero');
 heroEl.style.left = '50%';
 heroEl.style.top = '50%';
-heroEl.style.setProperty('--bqw', '170px');
+heroEl.style.setProperty('--bqw', 'clamp(96px,26vw,160px)');
 clustersLayer.appendChild(heroEl);
 
 /* los demás racimos: cada uno gira alrededor del centro a su propio radio.
@@ -697,8 +663,8 @@ var orbitItems = CLUSTERS.map(function(c, i){
   clustersLayer.appendChild(pos);
   return {
     pos: pos,
-    baseAngle: (360 / CLUSTERS.length) * i + (Math.random() * 14 - 7),
-    radiusFactor: 0.82 + Math.random() * 0.32
+    baseAngle: (360 / CLUSTERS.length) * i + (Math.random() * 10 - 5),
+    radiusFactor: 0.94 + Math.random() * 0.16
   };
 });
 
@@ -792,7 +758,7 @@ var angleStart = 0;
 var hintHidden = false;
 
 function orbitRadius(){
-  return Math.min(340, Math.max(140, Math.min(window.innerWidth, window.innerHeight) * 0.4));
+  return Math.min(360, Math.max(160, Math.min(window.innerWidth, window.innerHeight) * 0.48));
 }
 
 /* el aro guía tiene que trazar exactamente el mismo camino elíptico que
@@ -927,64 +893,5 @@ document.addEventListener('keydown', function(e){
   if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
 });
 
-/* =========================================================
-   MÓDULO 6 — intro de hiperespacio
-   ========================================================= */
-(function intro(){
-  var introEl = document.getElementById('intro');
-  var canvas = document.getElementById('warp-canvas');
-  var ctx = canvas.getContext('2d');
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var W = window.innerWidth, H = window.innerHeight;
-  canvas.width = W * DPR; canvas.height = H * DPR;
-  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-  var cx = W / 2, cy = H / 2;
-  var streaks = [];
-  var n = REDUCE ? 0 : 140;
-  for (var i = 0; i < n; i++){
-    var angle = Math.random() * Math.PI * 2;
-    streaks.push({
-      angle: angle,
-      dist: Math.random() * 60,
-      speed: 4 + Math.random() * 9,
-      len: 10 + Math.random() * 30
-    });
-  }
-  var start = null;
-  function frame(t){
-    if (!start) start = t;
-    var elapsed = t - start;
-    ctx.fillStyle = 'rgba(2,6,23,0.35)';
-    ctx.fillRect(0, 0, W, H);
-    for (var i = 0; i < streaks.length; i++){
-      var s = streaks[i];
-      s.dist += s.speed;
-      var x1 = cx + Math.cos(s.angle) * s.dist;
-      var y1 = cy + Math.sin(s.angle) * s.dist;
-      var x2 = cx + Math.cos(s.angle) * (s.dist + s.len);
-      var y2 = cy + Math.sin(s.angle) * (s.dist + s.len);
-      ctx.strokeStyle = 'rgba(250,224,138,0.85)';
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      if (s.dist > Math.max(W, H)){
-        s.dist = Math.random() * 40;
-        s.angle = Math.random() * Math.PI * 2;
-      }
-    }
-    if (elapsed < 1900 && !REDUCE) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-
-  setTimeout(function(){
-    introEl.classList.add('fade-out');
-    setTimeout(function(){ introEl.remove(); }, 950);
-  }, REDUCE ? 300 : 2000);
-})();
-
-setTimeout(function(){ if (!hintHidden) hintPill.classList.remove('hide'); }, 2200);
+setTimeout(function(){ if (!hintHidden) hintPill.classList.remove('hide'); }, 900);
 </script>
