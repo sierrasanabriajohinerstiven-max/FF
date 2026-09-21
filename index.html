@@ -71,6 +71,13 @@ button{font-family:inherit;}
 #stage.dragging .cluster{
   animation-play-state:paused;
 }
+/* drop-shadow es un filtro caro de recalcular en GPUs de celular,
+   sobre todo en 9 ramos con cientos de nodos SVG cada uno que además se
+   están moviendo. Se apaga mientras se arrastra y vuelve solo al soltar. */
+#stage.dragging .cluster-bouquet{
+  filter:none;
+  transition:none;
+}
 
 #bg-stars{
   position:fixed;
@@ -184,11 +191,14 @@ button{font-family:inherit;}
   font-size:clamp(1rem,3.8vw,1.25rem);
   color:var(--label-color, var(--gold-1));
   white-space:nowrap;
-  text-shadow:
-    0 0 3px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.9),
-    1px 1px 2px rgba(0,0,0,0.95), -1px -1px 2px rgba(0,0,0,0.95),
-    1px -1px 2px rgba(0,0,0,0.95), -1px 1px 2px rgba(0,0,0,0.95),
-    0 2px 12px rgba(0,0,0,0.8), 0 0 16px var(--label-glow, rgba(250,204,21,0.6));
+  /* antes eran 8 capas de text-shadow para el halo de legibilidad: se ve
+     igual de bien con un contorno de trazo (una sola pasada de pintado)
+     y solo una sombra de brillo, mucho más barato de repintar en celular
+     cada vez que la etiqueta se mueve durante el arrastre */
+  -webkit-text-stroke:3px rgba(0,0,0,0.88);
+  text-stroke:3px rgba(0,0,0,0.88);
+  paint-order:stroke fill;
+  text-shadow:0 2px 8px rgba(0,0,0,0.7), 0 0 14px var(--label-glow, rgba(250,204,21,0.55));
 }
 .cluster.hero{gap:16px;}
 .cluster.hero .cluster-label{font-size:clamp(1.3rem,5vw,1.6rem);}
