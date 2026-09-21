@@ -111,6 +111,7 @@ button{font-family:inherit;}
   pointer-events:none;
   z-index:1;
   animation:nebula-spin 70s linear infinite;
+  will-change:transform;
 }
 .spiral-galaxy svg{width:100%;height:100%;overflow:visible;}
 @keyframes nebula-spin{to{transform:rotate(360deg);}}
@@ -250,21 +251,6 @@ button{font-family:inherit;}
 .corner-flower.tl{top:-12px;left:-12px;transform:rotate(-18deg);}
 .corner-flower.br{bottom:-12px;right:-12px;transform:rotate(162deg);}
 
-.modal-close{
-  position:absolute;
-  top:12px;right:12px;
-  width:30px;height:30px;
-  border-radius:50%;
-  border:1px solid rgba(202,138,4,0.3);
-  background:rgba(255,255,255,0.6);
-  color:var(--ink);
-  font-size:.9rem;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .2s ease;
-}
-.modal-close:hover{transform:rotate(90deg);}
-
 .modal-title{
   font-family:var(--font-script);
   font-size:clamp(1.9rem,8vw,2.4rem);
@@ -329,7 +315,6 @@ button{font-family:inherit;}
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <svg class="corner-flower tl" viewBox="0 0 60 60"></svg>
     <svg class="corner-flower br" viewBox="0 0 60 60"></svg>
-    <button class="modal-close" id="modal-close-x" type="button" aria-label="Cerrar">&#10005;</button>
     <h2 class="modal-title" id="modal-title">Mi amor canelita&hellip;</h2>
     <div class="modal-bouquet" id="modal-bouquet" hidden></div>
     <p class="modal-text" id="modal-text"></p>
@@ -639,12 +624,12 @@ function buildSpiralGalaxy(container){
      cercano al centro (r<62) para que nada quede sobre el ramo, y no pasa
      de 132 -el contenedor se escala afuera para que eso siempre quede
      dentro del aro de la órbita-. */
-  var MIN_R = 62;
+  var MIN_R = 55;
   var cx = 150, cy = 150;
-  var arms = 18;
+  var arms = 34;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
-    for (var t = 0; t <= 4.4; t += 0.05){
+    for (var t = 0; t <= 4.4; t += 0.055){
       var r = 4 * Math.exp(0.79 * t);
       if (r > 132) break;
       if (r < MIN_R) continue;
@@ -797,6 +782,7 @@ function makeStarfield(canvas, width, twinkle){
   var skip = false;
   function draw(t){
     if (twinkle && !REDUCE){
+      if (typeof dragging !== 'undefined' && dragging){ requestAnimationFrame(draw); return; }
       skip = !skip;
       if (skip){ requestAnimationFrame(draw); return; }
     }
@@ -854,7 +840,7 @@ function layoutRing(){
 
   /* el remolino se escala para que sus puntos nunca salgan del aro
      elíptico (su límite más estrecho es el eje vertical, R*0.55) */
-  var spiralDotMaxPx = R * 0.55 * 0.85;
+  var spiralDotMaxPx = R * 0.55 * 0.96;
   var spiralBoxPx = spiralDotMaxPx * (300 / SPIRAL_MAX_R_VB);
   spiralGalaxyEl.style.width = spiralBoxPx + 'px';
   spiralGalaxyEl.style.height = spiralBoxPx + 'px';
@@ -975,7 +961,6 @@ function openModal(cluster){
 function closeModal(){
   overlay.classList.remove('active');
 }
-document.getElementById('modal-close-x').addEventListener('click', closeModal);
 document.getElementById('modal-close-btn').addEventListener('click', closeModal);
 overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
 document.addEventListener('keydown', function(e){
