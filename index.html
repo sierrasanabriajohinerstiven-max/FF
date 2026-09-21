@@ -1,6 +1,9 @@
-<title>Fernanda 🌻</title>
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fernanda &#127803;</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
 /* =========================================================
@@ -399,6 +402,8 @@ button{font-family:inherit;}
   100%{transform:translateY(110vh) rotate(400deg);}
 }
 </style>
+</head>
+<body>
 
 <!-- =========================================================
      SPLASH — pantalla de bienvenida temática
@@ -810,7 +815,7 @@ function buildSpiralGalaxy(container){
 buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
 
 /* =========================================================
-   MÓDULO 2 — la galaxia: racimos que orbitan un único punto central
+   MÓDULO 2 — la galaxia: racimos que órbitan un único punto central
    ========================================================= */
 var HERO = { label: 'Mi amor canelita', hero: true,
   text: "Fernanda, hoy es el día de las flores amarillas y en vez de mandarte solo una foto de un girasol como todo el mundo, se me ocurrió armarte esto.\n\nLa verdad, contigo hasta lo más simple se siente especial, y quería decírtelo distinto a como te lo digo siempre.\n\nFeliz día de las flores amarillas, mi amor canelita. Te quiero un montón, y ya sabes que no lo digo por decir." };
@@ -863,7 +868,7 @@ function makeClusterEl(c, uid, extraClass){
   return btn;
 }
 
-/* el racimo central: el único punto fijo, no orbita */
+/* el racimo central: el único punto fijo, no órbita */
 var heroEl = makeClusterEl(HERO, 99, 'hero');
 heroEl.style.left = '50%';
 heroEl.style.top = '50%';
@@ -1208,3 +1213,5 @@ setTimeout(function(){ if (!hintHidden) hintPill.classList.remove('hide'); }, 90
   setTimeout(dismissSplash, 5000);
 })();
 </script>
+</body>
+</html>
