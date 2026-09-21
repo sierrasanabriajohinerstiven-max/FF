@@ -1,8 +1,8 @@
-<title>Corazón de Girasoles</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<title>Galaxia de Girasoles</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
 /* =========================================================
-   1. DESIGN TOKENS — paleta, tipografías y superficies glass
+   1. TOKENS — paleta cósmica + tipografías
    ========================================================= */
 :root{
   --bg-1:#020617;
@@ -10,354 +10,287 @@
   --gold-1:#facc15;
   --gold-2:#eab308;
   --gold-3:#ca8a04;
+  --rose-1:#ff9d6c;
+  --rose-2:#e2492c;
   --white:#ffffff;
   --cream:#fdf6e3;
-  --ink:#e7e9f5;
+  --cream-deep:#f2e3b8;
+  --ink:#2a1a12;
+  --paper-1:#f5e6c8;
+  --paper-2:#c9a86a;
 
-  --glass-bg:rgba(15,23,42,0.72);
-  --glass-bg-soft:rgba(15,23,42,0.55);
-  --glass-border:rgba(250,204,21,0.22);
-  --glass-border-strong:rgba(250,204,21,0.4);
-
-  --code-bg:#0a0f1e;
-  --code-prop:#c4b5fd;
-  --code-value:#facc15;
-  --code-string:#86efac;
-  --code-comment:#64748b;
-  --code-punct:#94a3b8;
+  --glass-bg:rgba(15,23,42,0.7);
+  --glass-border:rgba(250,204,21,0.25);
 
   --font-script:'Great Vibes', cursive;
   --font-sans:'Poppins', ui-sans-serif, system-ui, sans-serif;
   --font-body:'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono:'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 }
 
 /* =========================================================
-   2. RESET Y BASE
+   2. RESET — experiencia de pantalla única, sin scroll de página
    ========================================================= */
 *{box-sizing:border-box;}
-html,body{min-height:100%;}
+html,body{height:100%;}
 body{
   margin:0;
-  background:
-    radial-gradient(120% 70% at 50% -10%, #1c2340 0%, transparent 55%),
-    radial-gradient(90% 60% at 85% 15%, rgba(250,204,21,0.05), transparent 60%),
-    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-1) 100%);
-  color:var(--ink);
+  overflow:hidden;
+  background:var(--bg-1);
+  color:var(--white);
   font-family:var(--font-body);
-  overflow-x:hidden;
-  position:relative;
+  -webkit-tap-highlight-color:transparent;
 }
-h1,h2,h3,p{margin:0;}
 button{font-family:inherit;}
 [hidden]{display:none !important;}
 
 /* =========================================================
-   3. FONDO ESTELAR (canvas fijo detrás de todo el contenido)
+   3. INTRO — efecto de "salto a hiperespacio" antes de llegar a la galaxia
    ========================================================= */
-#stars-canvas{
+#intro{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  background:var(--bg-1);
+  transition:opacity .9s ease;
+}
+#intro.fade-out{opacity:0;pointer-events:none;}
+#intro canvas{position:absolute;inset:0;}
+#intro p{
+  position:relative;
+  font-family:var(--font-sans);
+  font-size:.8rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--gold-1);
+}
+
+/* =========================================================
+   4. ESCENARIO — capa fija (viewport) que contiene el mundo pannable
+   ========================================================= */
+#stage{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  touch-action:none;
+  cursor:grab;
+}
+#stage.dragging{cursor:grabbing;}
+
+#bg-stars{
   position:fixed;
   inset:0;
   z-index:0;
   pointer-events:none;
 }
 
-/* capa de partículas doradas flotantes por CSS, encima del canvas */
-.gold-mote{
-  position:fixed;
-  z-index:1;
-  width:3px;height:3px;
-  border-radius:50%;
-  background:var(--gold-1);
-  box-shadow:0 0 10px 3px rgba(250,204,21,0.55);
-  opacity:0;
-  animation:mote-float 10s ease-in-out infinite, mote-glow 3.2s ease-in-out infinite;
+#world{
+  position:absolute;
+  top:0;left:0;
+  height:100%;
+  will-change:transform;
+}
+#world-stars{
+  position:absolute;
+  inset:0;
+  z-index:0;
   pointer-events:none;
 }
-@keyframes mote-float{
-  0%{transform:translate(0,0);}
-  50%{transform:translate(var(--mx,20px),var(--my,-40px));}
-  100%{transform:translate(0,0);}
+
+/* nebulosa: vórtice brillante que gira lentamente, foco visual central */
+.nebula{
+  position:absolute;
+  top:50%;
+  width:520px;height:520px;
+  margin:-260px 0 0 -260px;
+  border-radius:50%;
+  background:
+    conic-gradient(from 0deg, rgba(250,204,21,0.22), rgba(202,138,4,0.05) 30%, rgba(250,204,21,0.18) 60%, rgba(202,138,4,0.05) 90%, rgba(250,204,21,0.22)),
+    radial-gradient(circle, rgba(250,204,21,0.32), transparent 68%);
+  filter:blur(6px);
+  animation:nebula-spin 40s linear infinite;
+  pointer-events:none;
 }
-@keyframes mote-glow{0%,100%{opacity:0;}50%{opacity:.85;}}
+@keyframes nebula-spin{to{transform:rotate(360deg);}}
+
+/* corazón de partículas sobre la nebulosa */
+.hero-heart{
+  position:absolute;
+  top:50%;
+  width:170px;height:154px;
+  margin:-330px 0 0 -85px;
+  pointer-events:none;
+}
+.hero-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 22px rgba(250,204,21,0.6));animation:heart-beat 2.8s ease-in-out infinite;}
+@keyframes heart-beat{
+  0%,100%{transform:scale(1);}
+  15%{transform:scale(1.07);}
+  30%{transform:scale(.98);}
+  45%{transform:scale(1.04);}
+  60%{transform:scale(1);}
+}
+.hero-heart .orbit-dot{
+  position:absolute;top:50%;left:50%;
+  width:6px;height:6px;margin:-3px;
+  border-radius:50%;
+  background:var(--gold-1);
+  box-shadow:0 0 8px 2px rgba(250,204,21,0.85);
+  offset-path:circle(105px at 50% 50%);
+  animation:orbit 9s linear infinite;
+}
+@keyframes orbit{to{offset-distance:100%;}}
 
 /* =========================================================
-   4. LAYOUT GENERAL
+   5. RACIMOS — ramos flotantes, tocables, con su etiqueta
    ========================================================= */
-.page{
-  position:relative;
-  z-index:2;
-  max-width:1100px;
-  margin:0 auto;
-  padding:0 20px calc(60px + env(safe-area-inset-bottom,0px));
-  padding-top:env(safe-area-inset-top,0px);
-}
-
-/* =========================================================
-   5. HERO — encabezado + núcleo de corazón + tarjetas flotantes
-   ========================================================= */
-.hero{
-  min-height:100dvh;
+.cluster{
+  position:absolute;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
-  text-align:center;
-  gap:26px;
-  padding:64px 0 40px;
+  gap:8px;
+  border:none;
+  background:none;
+  padding:0;
+  cursor:pointer;
+  transform:translate(-50%,-50%);
+  animation:cluster-bob var(--bobdur,5.5s) ease-in-out infinite;
+  animation-delay:var(--bobdelay,0s);
 }
-.eyebrow{
-  font-family:var(--font-sans);
-  font-size:.72rem;
-  font-weight:600;
-  letter-spacing:.22em;
-  text-transform:uppercase;
-  color:var(--gold-1);
+@keyframes cluster-bob{
+  0%,100%{transform:translate(-50%,-50%) translateY(0) rotate(var(--tilt,0deg));}
+  50%{transform:translate(-50%,-50%) translateY(-12px) rotate(calc(var(--tilt,0deg) * -1));}
 }
-.hero-title{
-  font-family:var(--font-script);
-  font-weight:400;
-  font-size:clamp(3.2rem,13vw,6.2rem);
-  line-height:1;
-  color:var(--white);
-  text-shadow:0 0 28px rgba(250,204,21,0.35);
-  text-wrap:balance;
-}
-.hero-sub{
-  max-width:36ch;
-  font-family:var(--font-body);
-  font-size:clamp(.95rem,2.6vw,1.05rem);
-  line-height:1.6;
-  color:#c9cee3;
-}
-
-/* --- núcleo: corazón brillante con partículas orbitando --- */
-.core-wrap{
-  position:relative;
-  width:min(78vw,320px);
-  height:min(78vw,320px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.core-glow{
-  position:absolute;
-  inset:14%;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(250,204,21,0.45), transparent 70%);
-  filter:blur(18px);
-  animation:core-pulse 3.6s ease-in-out infinite;
-}
-@keyframes core-pulse{
-  0%,100%{transform:scale(.92);opacity:.65;}
-  50%{transform:scale(1.08);opacity:1;}
-}
-.core-heart{
-  position:relative;
-  width:46%;
-  height:46%;
-  filter:drop-shadow(0 0 18px rgba(250,204,21,0.65));
-  animation:heart-beat 2.6s ease-in-out infinite;
-}
-@keyframes heart-beat{
-  0%,100%{transform:scale(1);}
-  15%{transform:scale(1.08);}
-  30%{transform:scale(.98);}
-  45%{transform:scale(1.05);}
-  60%{transform:scale(1);}
-}
-.orbit-dot{
-  position:absolute;
-  top:50%;left:50%;
-  width:6px;height:6px;
-  margin:-3px;
-  border-radius:50%;
-  background:var(--gold-1);
-  box-shadow:0 0 8px 2px rgba(250,204,21,0.8);
-  offset-path:circle(42% at 50% 50%);
-  animation:orbit 7s linear infinite;
-}
-@keyframes orbit{ to{ offset-distance:100%; } }
-
-/* --- tarjetas flotantes con frases románticas --- */
-.float-cards{
-  position:relative;
-  width:100%;
-  max-width:760px;
-  height:0;
-}
-.float-card{
-  position:absolute;
+.cluster-bouquet{width:var(--bqw,118px);filter:drop-shadow(0 0 16px rgba(250,204,21,0.35));transition:filter .3s ease;}
+.cluster:hover .cluster-bouquet, .cluster:focus-visible .cluster-bouquet{filter:drop-shadow(0 0 24px rgba(250,204,21,0.65));}
+.cluster.hero .cluster-bouquet{width:170px;}
+.cluster-label{
   display:inline-flex;
   align-items:center;
-  gap:8px;
-  padding:10px 18px;
+  gap:6px;
+  padding:6px 14px;
   border-radius:999px;
   background:var(--glass-bg);
   border:1px solid var(--glass-border);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   font-family:var(--font-script);
-  font-size:1.35rem;
+  font-size:1.15rem;
   color:var(--gold-1);
   white-space:nowrap;
-  animation:card-float var(--fdur,6s) ease-in-out infinite;
-  animation-delay:var(--fdelay,0s);
 }
-@keyframes card-float{
-  0%,100%{transform:translateY(0) rotate(var(--frot,0deg));}
-  50%{transform:translateY(-14px) rotate(calc(var(--frot,0deg) * -1));}
-}
-.fc-1{top:-268px;left:2%;}
-.fc-2{top:-198px;right:0%;}
-.fc-3{top:-118px;left:16%;}
-.fc-4{top:-48px;right:12%;}
-.fc-5{top:-158px;left:44%;}
-
-/* CTA principal */
-.cta-btn{
-  margin-top:34px;
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  border:1px solid var(--glass-border-strong);
-  border-radius:999px;
-  padding:16px 32px;
-  font-family:var(--font-sans);
-  font-size:1rem;
-  font-weight:600;
-  color:var(--bg-1);
-  background:linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
-  box-shadow:0 12px 34px rgba(234,179,8,0.35);
-  cursor:pointer;
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-.cta-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 16px 40px rgba(234,179,8,0.5);}
-.cta-btn:focus-visible{outline:3px solid var(--gold-1);outline-offset:3px;}
-
-.scroll-cue{
-  margin-top:18px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px;
-  color:#8891b5;
-  font-size:.75rem;
-  font-family:var(--font-sans);
-  letter-spacing:.14em;
-  text-transform:uppercase;
-}
-.scroll-cue svg{animation:cue-bounce 1.8s ease-in-out infinite;}
-@keyframes cue-bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+.cluster:focus-visible{outline:none;}
+.cluster:focus-visible .cluster-label{outline:2px solid var(--gold-1);outline-offset:2px;}
 
 /* =========================================================
-   6. SECCIÓN "EDITOR DE CÓDIGO" — mockup estético
+   6. CONTROLES DE NAVEGACIÓN — flechas, pista y barra de progreso
    ========================================================= */
-.code-section{
-  padding:60px 0 40px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:18px;
-  text-align:center;
-}
-.code-heading{
-  font-family:var(--font-sans);
-  font-weight:600;
-  font-size:clamp(1.3rem,4vw,1.7rem);
-  color:var(--white);
-}
-.code-heading em{
-  font-family:var(--font-script);
-  font-style:normal;
-  color:var(--gold-1);
-  font-size:1.3em;
-}
-.code-sub{
-  max-width:44ch;
-  color:#a9b0cf;
-  font-size:.95rem;
-  line-height:1.6;
-}
-
-.editor-window{
-  width:100%;
-  max-width:640px;
-  border-radius:16px;
-  overflow:hidden;
-  background:var(--code-bg);
+.pan-btn{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:20;
+  width:44px;height:44px;
+  border-radius:50%;
   border:1px solid var(--glass-border);
-  box-shadow:0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02) inset;
-}
-.editor-titlebar{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:12px 16px;
-  background:rgba(255,255,255,0.03);
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.traffic-lights{display:flex;gap:8px;}
-.traffic-lights span{width:11px;height:11px;border-radius:50%;display:block;}
-.tl-red{background:#ff5f57;}
-.tl-yellow{background:#febc2e;}
-.tl-green{background:#28c840;}
-.editor-filename{
-  font-family:var(--font-mono);
-  font-size:.78rem;
-  color:#8b93b8;
-}
-.editor-body{
-  margin:0;
-  padding:20px 22px 22px;
-  font-family:var(--font-mono);
-  font-size:.82rem;
-  line-height:1.75;
-  text-align:left;
-  overflow-x:auto;
-}
-.editor-body .c-comment{color:var(--code-comment);}
-.editor-body .c-selector{color:var(--white);}
-.editor-body .c-prop{color:var(--code-prop);}
-.editor-body .c-punct{color:var(--code-punct);}
-.editor-body .c-value{color:var(--code-value);}
-.editor-body .c-string{color:var(--code-string);}
-
-.run-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  margin-top:18px;
-  padding:10px 22px;
-  border-radius:10px;
-  border:1px solid var(--glass-border-strong);
-  background:rgba(250,204,21,0.08);
+  background:var(--glass-bg);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   color:var(--gold-1);
-  font-family:var(--font-mono);
-  font-size:.85rem;
-  font-weight:500;
+  font-size:1.4rem;
+  line-height:1;
   cursor:pointer;
   transition:background .2s ease, transform .2s ease;
 }
-.run-btn:hover{background:rgba(250,204,21,0.16);transform:translateY(-1px);}
-.run-btn:active{transform:translateY(0);}
-.run-btn.running{opacity:.65;pointer-events:none;}
+.pan-btn:hover{background:rgba(250,204,21,0.14);}
+.pan-left{left:14px;}
+.pan-right{right:14px;}
+
+.top-bar{
+  position:fixed;
+  top:calc(16px + env(safe-area-inset-top,0px));
+  left:0;right:0;
+  z-index:15;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  pointer-events:none;
+  text-align:center;
+}
+.top-eyebrow{
+  font-family:var(--font-sans);
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--gold-1);
+  text-shadow:0 2px 10px rgba(0,0,0,0.6);
+}
+.top-title{
+  font-family:var(--font-script);
+  font-size:2rem;
+  color:var(--white);
+  text-shadow:0 0 18px rgba(250,204,21,0.4);
+}
+
+.hint-pill{
+  position:fixed;
+  bottom:calc(64px + env(safe-area-inset-bottom,0px));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:20;
+  padding:9px 18px;
+  border-radius:999px;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  font-family:var(--font-sans);
+  font-size:.8rem;
+  color:var(--cream);
+  opacity:1;
+  transition:opacity .6s ease;
+  animation:hint-nudge 1.8s ease-in-out infinite;
+}
+.hint-pill.hide{opacity:0;pointer-events:none;}
+@keyframes hint-nudge{0%,100%{transform:translateX(-50%);}50%{transform:translateX(calc(-50% + 6px));}}
+
+.progress-track{
+  position:fixed;
+  left:50%;
+  bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);
+  z-index:20;
+  width:min(70vw,260px);
+  height:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.12);
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  width:40px;
+  border-radius:999px;
+  background:linear-gradient(90deg, var(--gold-3), var(--gold-1));
+}
 
 /* =========================================================
-   7. MODAL — tarjeta sorpresa con el ramo de girasoles
+   7. MODAL — la carta que se abre al tocar un racimo
    ========================================================= */
 .modal-overlay{
   position:fixed;
   inset:0;
-  z-index:50;
+  z-index:60;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:20px;
   padding-top:calc(20px + env(safe-area-inset-top,0px));
   padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
-  background:rgba(2,6,23,0.72);
+  background:rgba(2,6,23,0.75);
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
   opacity:0;
@@ -369,171 +302,105 @@ button{font-family:inherit;}
 .modal-card{
   position:relative;
   width:100%;
-  max-width:480px;
-  max-height:88dvh;
+  max-width:420px;
+  max-height:86dvh;
   overflow-y:auto;
-  border-radius:24px;
-  padding:34px 28px 30px;
-  background:var(--glass-bg);
-  border:1px solid var(--glass-border-strong);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  border-radius:22px;
+  padding:36px 26px 28px;
+  background:linear-gradient(180deg, var(--cream), var(--cream-deep));
+  border:1px solid rgba(202,138,4,0.35);
   box-shadow:0 30px 80px rgba(0,0,0,0.55);
   text-align:center;
+  color:var(--ink);
   transform:scale(.9) translateY(16px);
   opacity:0;
   transition:transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease;
 }
 .modal-overlay.active .modal-card{transform:scale(1) translateY(0);opacity:1;}
 
+.corner-flower{position:absolute;width:52px;opacity:.9;}
+.corner-flower.tl{top:-12px;left:-12px;transform:rotate(-18deg);}
+.corner-flower.br{bottom:-12px;right:-12px;transform:rotate(162deg);}
+
 .modal-close{
   position:absolute;
-  top:14px;right:14px;
-  width:32px;height:32px;
+  top:12px;right:12px;
+  width:30px;height:30px;
   border-radius:50%;
-  border:1px solid var(--glass-border);
-  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(202,138,4,0.3);
+  background:rgba(255,255,255,0.6);
   color:var(--ink);
-  font-size:1rem;
-  line-height:1;
+  font-size:.9rem;
   cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  transition:background .2s ease, transform .2s ease;
+  transition:transform .2s ease;
 }
-.modal-close:hover{background:rgba(255,255,255,0.1);transform:rotate(90deg);}
+.modal-close:hover{transform:rotate(90deg);}
 
-.modal-eyebrow{
-  font-family:var(--font-sans);
-  font-size:.7rem;
-  font-weight:600;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--gold-1);
-}
 .modal-title{
-  margin-top:8px;
   font-family:var(--font-script);
-  font-size:clamp(2rem,8vw,2.7rem);
-  color:var(--white);
-  text-shadow:0 0 20px rgba(250,204,21,0.3);
+  font-size:clamp(1.9rem,8vw,2.4rem);
+  color:var(--rose-2);
 }
-
-.bouquet-wrap{
-  width:min(72%,230px);
-  margin:18px auto 6px;
-}
-.bouquet-group{
-  animation:bouquet-sway 6s ease-in-out infinite;
-  transform-origin:150px 280px;
-}
-@keyframes bouquet-sway{
-  0%,100%{transform:rotate(-1.6deg);}
-  50%{transform:rotate(1.6deg);}
-}
-.bq-head{animation:bq-shimmer var(--bdur,4.2s) ease-in-out infinite;animation-delay:var(--bdelay,0s);transform-origin:center;}
-@keyframes bq-shimmer{
-  0%,100%{transform:rotate(-2.5deg) scale(1);}
-  50%{transform:rotate(2.5deg) scale(1.03);}
-}
-
+.modal-bouquet{width:150px;margin:6px auto 4px;}
 .modal-text{
-  margin-top:6px;
-  font-family:var(--font-body);
-  font-size:.98rem;
-  line-height:1.7;
-  color:var(--ink);
+  margin-top:10px;
+  font-size:1.02rem;
+  line-height:1.65;
   white-space:pre-wrap;
-  text-align:left;
 }
-.modal-caret{display:inline-block;width:2px;background:var(--gold-1);margin-left:1px;animation:caret-blink 1s step-end infinite;}
+.modal-text b{color:var(--gold-3);}
+.modal-caret{display:inline-block;width:2px;background:var(--rose-2);margin-left:1px;animation:caret-blink 1s step-end infinite;}
 @keyframes caret-blink{50%{opacity:0;}}
-
-.modal-signature{
-  margin-top:16px;
-  font-family:var(--font-script);
-  font-size:1.6rem;
-  color:var(--gold-1);
-  opacity:0;
-  transition:opacity .6s ease;
-}
-.modal-signature.show{opacity:1;}
 
 .modal-close-btn{
   margin-top:22px;
-  padding:12px 28px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:11px 26px;
   border-radius:999px;
   border:none;
   font-family:var(--font-sans);
   font-weight:600;
   font-size:.9rem;
-  color:var(--bg-1);
+  color:var(--ink);
   background:linear-gradient(135deg, var(--gold-1), var(--gold-2));
   cursor:pointer;
   transition:transform .2s ease;
 }
-.modal-close-btn:hover{transform:translateY(-1px) scale(1.02);}
+.modal-close-btn:hover{transform:translateY(-1px) scale(1.03);}
 
 /* =========================================================
-   8. FOOTER
-   ========================================================= */
-.footer{
-  text-align:center;
-  padding:20px 0 10px;
-  color:#6b7398;
-  font-size:.8rem;
-  font-family:var(--font-sans);
-  letter-spacing:.04em;
-}
-
-/* =========================================================
-   9. RESPONSIVE — tarjetas flotantes pasan a flujo apilado
-   ========================================================= */
-@media (max-width:640px){
-  .float-cards{
-    height:auto;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-    margin-top:18px;
-  }
-  .float-card{position:static;animation:card-float-mobile var(--fdur,6s) ease-in-out infinite;animation-delay:var(--fdelay,0s);}
-  @keyframes card-float-mobile{
-    0%,100%{transform:translateY(0);}
-    50%{transform:translateY(-6px);}
-  }
-  .editor-body{font-size:.74rem;}
-}
-
-/* =========================================================
-   10. ACCESIBILIDAD — respeta "reduce motion"
+   8. ACCESIBILIDAD
    ========================================================= */
 @media (prefers-reduced-motion: reduce){
-  .core-glow,.core-heart,.orbit-dot,.float-card,.gold-mote,.scroll-cue svg,
-  .bouquet-group,.bq-head{animation-duration:.001ms !important;}
+  .nebula,.hero-heart svg,.orbit-dot,.cluster,.hint-pill{animation-duration:.001ms !important;}
+}
+@media (max-width:640px){
+  .pan-btn{width:38px;height:38px;font-size:1.2rem;}
+  .top-title{font-size:1.6rem;}
 }
 </style>
 
 <!-- =========================================================
-     FONDO: canvas de estrellas fijo + motas doradas flotantes
+     INTRO: salto a hiperespacio antes de llegar a la galaxia
      ========================================================= -->
-<canvas id="stars-canvas"></canvas>
-<div id="motes"></div>
+<div id="intro">
+  <canvas id="warp-canvas"></canvas>
+  <p>Preparando tu universo&hellip;</p>
+</div>
 
-<div class="page">
-
-  <!-- =======================================================
-       HERO: título, núcleo con corazón, tarjetas flotantes, CTA
-       ======================================================= -->
-  <header class="hero">
-    <p class="eyebrow">21 de septiembre · Día Internacional de las Flores Amarillas</p>
-    <h1 class="hero-title">Fernanda</h1>
-    <p class="hero-sub">Un rincón del cielo, hecho de luz dorada y girasoles, construido pieza por pieza solo para ti.</p>
-
-    <!-- núcleo interactivo: corazón brillante con partículas orbitando -->
-    <div class="core-wrap" aria-hidden="true">
-      <div class="core-glow"></div>
-      <svg class="core-heart" viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
+<!-- =========================================================
+     ESCENARIO PRINCIPAL: mundo pannable con la galaxia de flores
+     ========================================================= -->
+<div id="stage">
+  <canvas id="bg-stars"></canvas>
+  <div id="world">
+    <canvas id="world-stars"></canvas>
+    <div class="nebula" id="nebula"></div>
+    <div class="hero-heart" id="hero-heart">
+      <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#fff6cc"/>
@@ -544,129 +411,279 @@ button{font-family:inherit;}
         <path fill="url(#heartGrad)" d="M16 28.5 2.6 15.7C-1.9 11.2 0.4 3.6 6.7 2.4c3.4-0.6 6.8 0.9 8.7 3.7 1.9-2.8 5.3-4.3 8.7-3.7 6.3 1.2 8.6 8.8 4.1 13.3z"/>
       </svg>
       <span class="orbit-dot" style="animation-delay:0s"></span>
-      <span class="orbit-dot" style="animation-delay:-2.3s"></span>
-      <span class="orbit-dot" style="animation-delay:-4.6s"></span>
+      <span class="orbit-dot" style="animation-delay:-3s"></span>
+      <span class="orbit-dot" style="animation-delay:-6s"></span>
     </div>
+    <div id="clusters-layer"></div>
+  </div>
 
-    <!-- tarjetas flotantes con frases (decorativas, con reflow a lista en móvil) -->
-    <div class="float-cards" aria-hidden="true">
-      <span class="float-card fc-1" style="--fdur:6.4s;--fdelay:.1s;--frot:-4deg">un jardín entero</span>
-      <span class="float-card fc-2" style="--fdur:5.6s;--fdelay:.6s;--frot:5deg">solo para ti</span>
-      <span class="float-card fc-3" style="--fdur:7s;--fdelay:.3s;--frot:-3deg">21 de septiembre</span>
-      <span class="float-card fc-4" style="--fdur:6.1s;--fdelay:.9s;--frot:4deg">flores amarillas</span>
-      <span class="float-card fc-5" style="--fdur:5.9s;--fdelay:.4s;--frot:-5deg">te quiero</span>
-    </div>
-
-    <button class="cta-btn" id="cta-open" type="button">
-      Descubre tu sorpresa 🌻
-    </button>
-
-    <div class="scroll-cue">
-      <span>sigue bajando</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 9l6 6 6-6"/>
-      </svg>
-    </div>
-  </header>
-
-  <!-- =======================================================
-       SECCIÓN EDITOR: mockup de código que "construye" el regalo
-       ======================================================= -->
-  <section class="code-section">
-    <h2 class="code-heading">Así se escribió <em>tu regalo</em></h2>
-    <p class="code-sub">Cada línea de este código es, en el fondo, una excusa para decirte algo bonito.</p>
-
-    <div class="editor-window">
-      <div class="editor-titlebar">
-        <div class="traffic-lights">
-          <span class="tl-red"></span><span class="tl-yellow"></span><span class="tl-green"></span>
-        </div>
-        <span class="editor-filename">regalo-fernanda.css</span>
-      </div>
-      <pre class="editor-body"><code><span class="c-comment">/* receta para un 21 de septiembre perfecto */</span>
-<span class="c-selector">.regalo-para-fernanda</span> <span class="c-punct">{</span>
-  <span class="c-prop">--letter-love</span><span class="c-punct">:</span> <span class="c-string">"Fernanda"</span><span class="c-punct">;</span>
-  <span class="c-prop">position</span><span class="c-punct">:</span> <span class="c-value">fixed</span><span class="c-punct">;</span>
-  <span class="c-prop">width</span><span class="c-punct">:</span> <span class="c-value">100%</span><span class="c-punct">;</span>
-  <span class="c-prop">font-family</span><span class="c-punct">:</span> <span class="c-string">'Great Vibes'</span><span class="c-punct">,</span> <span class="c-value">cursive</span><span class="c-punct">;</span>
-  <span class="c-prop">color</span><span class="c-punct">:</span> <span class="c-value">var(--letter-love)</span><span class="c-punct">;</span>
-<span class="c-punct">}</span>
-
-<span class="c-selector">.girasol:hover</span> <span class="c-punct">{</span>
-  <span class="c-prop">transform</span><span class="c-punct">:</span> <span class="c-value">scale(1.08) rotate(3deg)</span><span class="c-punct">;</span>
-  <span class="c-prop">filter</span><span class="c-punct">:</span> <span class="c-value">drop-shadow(0 0 12px gold)</span><span class="c-punct">;</span>
-<span class="c-punct">}</span></code></pre>
-    </div>
-
-    <button class="run-btn" id="cta-run" type="button">▶ Ejecutar regalo-fernanda.css</button>
-  </section>
-
-  <footer class="footer">
-    hecho con girasoles, luz y un poco de código &middot; para Fernanda
-  </footer>
+  <button class="pan-btn pan-left" id="pan-left" type="button" aria-label="Explorar a la izquierda">&#8249;</button>
+  <button class="pan-btn pan-right" id="pan-right" type="button" aria-label="Explorar a la derecha">&#8250;</button>
 </div>
 
+<div class="top-bar">
+  <p class="top-eyebrow">21 de septiembre &middot; Día Internacional de las Flores Amarillas</p>
+  <p class="top-title">para Fernanda</p>
+</div>
+
+<p class="hint-pill" id="hint-pill">Desliza para explorar tu galaxia &#8596;</p>
+
+<div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+
 <!-- =========================================================
-     MODAL: tarjeta sorpresa con el ramo de girasoles y la carta
+     MODAL: la carta que se abre al tocar cada racimo
      ========================================================= -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <button class="modal-close" id="modal-close-x" type="button" aria-label="Cerrar">✕</button>
-    <p class="modal-eyebrow">Feliz día de las flores amarillas</p>
-    <h2 class="modal-title" id="modal-title">Mi amor...</h2>
-
-    <div class="bouquet-wrap" id="bouquet-wrap"></div>
-
+    <svg class="corner-flower tl" viewBox="0 0 60 60"></svg>
+    <svg class="corner-flower br" viewBox="0 0 60 60"></svg>
+    <button class="modal-close" id="modal-close-x" type="button" aria-label="Cerrar">&#10005;</button>
+    <h2 class="modal-title" id="modal-title">Mi amor&hellip;</h2>
+    <div class="modal-bouquet" id="modal-bouquet" hidden></div>
     <p class="modal-text" id="modal-text"></p>
-    <p class="modal-signature" id="modal-signature">Con todo mi cariño. 🌻</p>
-
-    <button class="modal-close-btn" id="modal-close-btn" type="button">Cerrar</button>
+    <button class="modal-close-btn" id="modal-close-btn" type="button">Cerrar &#127803;</button>
   </div>
 </div>
 
 <script>
-/* =========================================================
-   MÓDULO 1 — fondo: estrellas en canvas + motas doradas en CSS
-   ========================================================= */
-(function initBackground(){
-  "use strict";
-  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+"use strict";
+var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var NS = 'http://www.w3.org/2000/svg';
 
-  var canvas = document.getElementById('stars-canvas');
+/* =========================================================
+   MÓDULO 1 — fábrica de ramos: girasoles + rosas + envoltorio
+   ========================================================= */
+function svgEl(tag, attrs){
+  var n = document.createElementNS(NS, tag);
+  for (var k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+function buildBouquet(uid){
+  var svg = svgEl('svg', { viewBox: '0 0 300 340' });
+  svg.style.width = '100%';
+  svg.style.height = 'auto';
+  svg.style.display = 'block';
+
+  var defs = svgEl('defs', {});
+  var sunGrad = svgEl('linearGradient', { id: 'pg-sun-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
+  sunGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#fff3b0' }));
+  sunGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#f2971d' }));
+  var roseGrad = svgEl('linearGradient', { id: 'pg-rose-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
+  roseGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--rose-1)' }));
+  roseGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--rose-2)' }));
+  var paperGrad = svgEl('linearGradient', { id: 'pg-paper-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
+  paperGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--paper-1)' }));
+  paperGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--paper-2)' }));
+  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(paperGrad);
+  svg.appendChild(defs);
+
+  var group = svgEl('g', { class: 'bouquet-sway' });
+  var tieX = 150, tieY = 300;
+
+  var heads = [
+    { x: 150, y: 78,  s: 1.15, r: 0,   type: 'sun'  },
+    { x: 104, y: 100, s: 0.95, r: -14, type: 'sun'  },
+    { x: 196, y: 100, s: 0.95, r: 14,  type: 'sun'  },
+    { x: 130, y: 120, s: 0.85, r: -6,  type: 'rose' },
+    { x: 170, y: 120, s: 0.85, r: 6,   type: 'rose' },
+    { x: 70,  y: 142, s: 0.82, r: -24, type: 'sun'  },
+    { x: 230, y: 142, s: 0.82, r: 24,  type: 'sun'  }
+  ];
+
+  /* envoltorio de papel, detrás de todo */
+  group.appendChild(svgEl('path', {
+    d: 'M' + (tieX - 46) + ',' + (tieY + 26) + ' L' + (tieX - 22) + ',' + (tieY - 74) +
+       ' L' + (tieX + 22) + ',' + (tieY - 74) + ' L' + (tieX + 46) + ',' + (tieY + 26) + ' Z',
+    fill: 'url(#pg-paper-' + uid + ')'
+  }));
+
+  /* tallos: curva desde el punto de amarre hasta cada cabeza */
+  heads.forEach(function(h){
+    var ctrlX = tieX + (h.x - tieX) * 0.5;
+    var ctrlY = tieY - (tieY - h.y) * 0.55;
+    group.appendChild(svgEl('path', {
+      d: 'M' + tieX + ',' + tieY + ' Q' + ctrlX + ',' + ctrlY + ' ' + h.x + ',' + (h.y + 14),
+      fill: 'none', stroke: '#3f6b2b', 'stroke-width': 3, 'stroke-linecap': 'round'
+    }));
+  });
+
+  /* un par de hojas para dar volumen */
+  group.appendChild(svgEl('path', { d: 'M150,210 Q115,202 100,225 Q125,234 150,218 Z', fill: '#4f7a3a' }));
+  group.appendChild(svgEl('path', { d: 'M155,225 Q195,218 210,240 Q180,248 155,233 Z', fill: '#446a31' }));
+
+  /* lazo sobre el envoltorio */
+  group.appendChild(svgEl('path', { d: 'M150,298 L112,275 Q104,272 108,288 Q112,302 132,298 Z', fill: '#7a2e2f' }));
+  group.appendChild(svgEl('path', { d: 'M150,298 L188,275 Q196,272 192,288 Q188,302 168,298 Z', fill: '#7a2e2f' }));
+  group.appendChild(svgEl('circle', { cx: 150, cy: 298, r: 7, fill: '#5c2022' }));
+
+  /* cabezas: ancla estática (posición) + capa animada (vida propia) separadas,
+     porque un transform por CSS reemplaza -no combina- al atributo transform de SVG */
+  heads.forEach(function(h, i){
+    var anchor = svgEl('g', {
+      transform: 'translate(' + h.x + ',' + h.y + ') scale(' + h.s + ') rotate(' + h.r + ')'
+    });
+    var head = svgEl('g', { class: 'bq-head' });
+    head.style.animation = 'bq-shimmer ' + (3.6 + Math.random() * 1.6).toFixed(2) + 's ease-in-out infinite';
+    head.style.animationDelay = (i * 0.18).toFixed(2) + 's';
+    head.style.transformOrigin = 'center';
+
+    if (h.type === 'sun'){
+      for (var layer = 0; layer < 2; layer++){
+        var count = 8;
+        var baseR = layer === 0 ? 20 : 12;
+        var offset = layer === 0 ? 0 : 22.5;
+        for (var p = 0; p < count; p++){
+          var angle = (360 / count) * p + offset;
+          head.appendChild(svgEl('ellipse', {
+            cx: 0, cy: -baseR, rx: layer === 0 ? 7 : 5, ry: layer === 0 ? 15 : 10,
+            transform: 'rotate(' + angle + ')',
+            fill: 'url(#pg-sun-' + uid + ')'
+          }));
+        }
+      }
+      head.appendChild(svgEl('circle', { r: 10.5, fill: '#6b3714' }));
+      for (var d = 0; d < 8; d++){
+        var a2 = (Math.PI * 2 / 8) * d;
+        head.appendChild(svgEl('circle', {
+          cx: Math.cos(a2) * 5, cy: Math.sin(a2) * 5, r: 1.1, fill: '#8a4a1c'
+        }));
+      }
+    } else {
+      for (var ring = 0; ring < 4; ring++){
+        var rCount = 6;
+        var radius = 11 - ring * 2.2;
+        var rOffset = ring * 25;
+        for (var rp = 0; rp < rCount; rp++){
+          var rAngle = (360 / rCount) * rp + rOffset;
+          head.appendChild(svgEl('ellipse', {
+            cx: 0, cy: -radius, rx: Math.max(5 - ring * 0.6, 2), ry: Math.max(8 - ring * 1, 3),
+            transform: 'rotate(' + rAngle + ')',
+            fill: 'url(#pg-rose-' + uid + ')',
+            opacity: (1 - ring * 0.08).toFixed(2)
+          }));
+        }
+      }
+      head.appendChild(svgEl('circle', { r: 2.6, fill: '#7a1f14' }));
+    }
+    anchor.appendChild(head);
+    group.appendChild(anchor);
+  });
+
+  svg.appendChild(group);
+  return svg;
+}
+
+/* pequeño sprite decorativo para las esquinas de la carta */
+function fillCornerFlower(svgNode){
+  svgNode.innerHTML =
+    '<g>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#f2971d"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#ffc93c" transform="rotate(51 30 30)"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#f2971d" transform="rotate(102 30 30)"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#ffc93c" transform="rotate(153 30 30)"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#f2971d" transform="rotate(204 30 30)"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#ffc93c" transform="rotate(255 30 30)"/>' +
+    '<ellipse cx="30" cy="12" rx="7" ry="15" fill="#f2971d" transform="rotate(306 30 30)"/>' +
+    '<circle cx="30" cy="30" r="8" fill="#6b3714"/>' +
+    '</g>';
+}
+
+/* the CSS keyframe used by every flower head (defined once, applied via JS style.animation above) */
+var styleTag = document.createElement('style');
+styleTag.textContent = '@keyframes bq-shimmer{0%,100%{transform:rotate(-2.5deg) scale(1);}50%{transform:rotate(2.5deg) scale(1.03);}}' +
+  '.bouquet-sway{animation:bouquet-sway 6s ease-in-out infinite;transform-origin:150px 300px;}' +
+  '@keyframes bouquet-sway{0%,100%{transform:rotate(-1.4deg);}50%{transform:rotate(1.4deg);}}';
+document.head.appendChild(styleTag);
+
+/* =========================================================
+   MÓDULO 2 — la galaxia: racimos esparcidos por el mundo pannable
+   ========================================================= */
+var WORLD_WIDTH = 4000;
+
+var CLUSTERS = [
+  { x: 280,  y: 55,  label: 'Eres mi sol',
+    text: 'Cada mañana que despierto pensando en ti confirmo esto: eres la luz que hace que todo lo demás tenga sentido.' },
+  { x: 760,  y: -70, label: 'Te amo',
+    text: 'No hay una sola flor amarilla que alcance para decir cuánto te amo, así que mejor te construí un jardín entero de ellas.' },
+  { x: 1240, y: 80,  label: 'Eres única',
+    text: 'He visto muchos cielos y muchas cosas bonitas en el camino, y ninguna se compara contigo.' },
+  { x: 1900, y: 0,   label: 'Mi amor', hero: true,
+    text: "Fernanda, hoy es el Día Internacional de las Flores Amarillas y quise construirte un universo entero solo para decirte esto:\n\ncontigo hasta lo más pequeño se siente enorme. Cada girasol de esta galaxia, cada luz dorada, es una forma distinta de decir lo mismo: que me haces muy feliz.\n\nFeliz día de las flores amarillas, mi amor." },
+  { x: 2500, y: -65, label: 'Amor de mi vida',
+    text: 'Si el 21 de septiembre existe para las flores amarillas, que exista también un día solo para recordarte cuánto significas para mí.' },
+  { x: 2980, y: 75,  label: 'Me encantas',
+    text: 'Me encantas hasta en los detalles más pequeños, de esos que nadie más nota pero yo sí.' },
+  { x: 3460, y: -45, label: 'Eres preciosa',
+    text: 'Preciosa no alcanza a describirte, pero es lo más cerca que las palabras logran llegar.' },
+  { x: 3820, y: 40,  label: 'Siempre juntos',
+    text: 'Pase lo que pase, quiero seguir construyendo jardines contigo. Siempre juntos.' }
+];
+
+var world = document.getElementById('world');
+var clustersLayer = document.getElementById('clusters-layer');
+var nebula = document.getElementById('nebula');
+var heroHeart = document.getElementById('hero-heart');
+
+world.style.width = WORLD_WIDTH + 'px';
+var heroCluster = CLUSTERS.filter(function(c){ return c.hero; })[0];
+nebula.style.left = heroCluster.x + 'px';
+heroHeart.style.left = heroCluster.x + 'px';
+
+CLUSTERS.forEach(function(c, i){
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'cluster' + (c.hero ? ' hero' : '');
+  btn.style.left = c.x + 'px';
+  btn.style.top = 'calc(50% + ' + c.y + 'px)';
+  btn.style.setProperty('--bobdur', (4.6 + Math.random() * 2).toFixed(2) + 's');
+  btn.style.setProperty('--bobdelay', (Math.random() * 2).toFixed(2) + 's');
+  btn.style.setProperty('--tilt', ((i % 2 === 0 ? 1 : -1) * (2 + Math.random() * 2)).toFixed(1) + 'deg');
+  if (c.hero) btn.style.setProperty('--bqw', '170px');
+
+  var bWrap = document.createElement('span');
+  bWrap.className = 'cluster-bouquet';
+  bWrap.appendChild(buildBouquet('c' + i));
+  btn.appendChild(bWrap);
+
+  var label = document.createElement('span');
+  label.className = 'cluster-label';
+  label.innerHTML = c.label + ' <span aria-hidden="true">&#128156;</span>';
+  btn.appendChild(label);
+
+  btn.addEventListener('click', function(){ openModal(c); });
+  clustersLayer.appendChild(btn);
+});
+
+/* =========================================================
+   MÓDULO 3 — estrellas: cielo fijo + campo estelar del mundo
+   ========================================================= */
+function makeStarfield(canvas, width, twinkle){
   var ctx = canvas.getContext('2d');
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var W = 0, H = 0, stars = [];
+  var H = window.innerHeight;
+  canvas.width = width * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width = width + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  function resize(){
-    W = window.innerWidth;
-    H = document.documentElement.scrollHeight;
-    canvas.width = W * DPR;
-    canvas.height = Math.min(H, window.innerHeight * 3) * DPR;
-    canvas.style.width = W + 'px';
-    canvas.style.height = canvas.height / DPR + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    buildStars();
+  var count = Math.floor((width * H) / 6500);
+  var stars = [];
+  for (var i = 0; i < count; i++){
+    stars.push({
+      x: Math.random() * width,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + 0.3,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.015 + Math.random() * 0.02
+    });
   }
-
-  function buildStars(){
-    var count = Math.floor((W * (canvas.height / DPR)) / 9000);
-    stars = [];
-    for (var i = 0; i < count; i++){
-      stars.push({
-        x: Math.random() * W,
-        y: Math.random() * (canvas.height / DPR),
-        r: Math.random() * 1.4 + 0.3,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.015 + Math.random() * 0.02
-      });
-    }
-  }
-
   function draw(t){
-    ctx.clearRect(0, 0, W, canvas.height / DPR);
+    ctx.clearRect(0, 0, width, H);
     for (var i = 0; i < stars.length; i++){
       var s = stars[i];
-      var tw = REDUCE ? 0.7 : (Math.sin(t * s.speed + s.phase) * 0.5 + 0.5);
+      var tw = twinkle && !REDUCE ? (Math.sin(t * s.speed + s.phase) * 0.5 + 0.5) : 0.75;
       ctx.globalAlpha = 0.25 + tw * 0.75;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
@@ -674,242 +691,215 @@ button{font-family:inherit;}
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    if (!REDUCE) requestAnimationFrame(draw);
+    if (twinkle && !REDUCE) requestAnimationFrame(draw);
   }
-
-  window.addEventListener('resize', resize);
-  resize();
   requestAnimationFrame(draw);
   if (REDUCE) draw(0);
-
-  /* motas doradas flotantes (decorativas, número reducido si reduce-motion) */
-  var motesWrap = document.getElementById('motes');
-  var moteCount = REDUCE ? 0 : 16;
-  for (var m = 0; m < moteCount; m++){
-    var el = document.createElement('span');
-    el.className = 'gold-mote';
-    el.style.left = (Math.random() * 100) + 'vw';
-    el.style.top = (Math.random() * 100) + 'vh';
-    el.style.setProperty('--mx', (Math.random() * 60 - 30) + 'px');
-    el.style.setProperty('--my', (Math.random() * 60 - 60) + 'px');
-    el.style.animationDelay = (Math.random() * 6) + 's, ' + (Math.random() * 3) + 's';
-    motesWrap.appendChild(el);
-  }
-})();
-
-/* =========================================================
-   MÓDULO 2 — el ramo de girasoles (SVG generado, con vida propia)
-   ========================================================= */
-function buildBouquet(container){
-  "use strict";
-  var NS = 'http://www.w3.org/2000/svg';
-  function el(tag, attrs){
-    var n = document.createElementNS(NS, tag);
-    for (var k in attrs) n.setAttribute(k, attrs[k]);
-    return n;
-  }
-
-  var svg = el('svg', { viewBox: '0 0 300 300' });
-  svg.style.width = '100%';
-  svg.style.height = 'auto';
-  svg.style.display = 'block';
-  var group = el('g', { class: 'bouquet-group' });
-
-  var tieX = 150, tieY = 280;
-
-  /* posiciones de las 7 cabezas de girasol, en forma de abanico/domo */
-  var heads = [
-    { x: 150, y: 58,  s: 1.18, r: 0   },
-    { x: 100, y: 82,  s: 0.96, r: -14 },
-    { x: 202, y: 82,  s: 0.96, r: 14  },
-    { x: 62,  y: 126, s: 0.84, r: -26 },
-    { x: 238, y: 126, s: 0.84, r: 26  },
-    { x: 126, y: 102, s: 1.0,  r: -6  },
-    { x: 176, y: 102, s: 1.0,  r: 6   }
-  ];
-
-  /* tallos: curva desde el punto de amarre hacia cada cabeza */
-  heads.forEach(function(h, i){
-    var ctrlX = tieX + (h.x - tieX) * 0.5;
-    var ctrlY = tieY - (tieY - h.y) * 0.55;
-    var stem = el('path', {
-      d: 'M' + tieX + ',' + tieY + ' Q' + ctrlX + ',' + ctrlY + ' ' + h.x + ',' + (h.y + 14),
-      fill: 'none',
-      stroke: '#3f6b2b',
-      'stroke-width': 3.2,
-      'stroke-linecap': 'round'
-    });
-    group.appendChild(stem);
-  });
-
-  /* un par de hojas para dar volumen */
-  group.appendChild(el('path', { d: 'M150,190 Q115,182 100,205 Q125,214 150,198 Z', fill: '#4f7a3a' }));
-  group.appendChild(el('path', { d: 'M155,205 Q195,198 210,220 Q180,228 155,213 Z', fill: '#446a31' }));
-
-  /* lazo en el punto de amarre */
-  group.appendChild(el('path', { d: 'M150,278 L112,255 Q104,252 108,268 Q112,282 132,278 Z', fill: '#7a2e2f' }));
-  group.appendChild(el('path', { d: 'M150,278 L188,255 Q196,252 192,268 Q188,282 168,278 Z', fill: '#7a2e2f' }));
-  group.appendChild(el('circle', { cx: 150, cy: 278, r: 8, fill: '#5c2022' }));
-
-  /* cada cabeza de girasol: pétalos radiales + centro con textura de semillas.
-     La posición va en un <g> "ancla" (atributo transform, estático); la animación
-     de vida va en un <g> hijo aparte, porque un transform por CSS reemplaza por
-     completo al atributo transform de SVG en lugar de combinarse con él. */
-  heads.forEach(function(h, i){
-    var anchor = el('g', {
-      transform: 'translate(' + h.x + ',' + h.y + ') scale(' + h.s + ') rotate(' + h.r + ')'
-    });
-    var head = el('g', { class: 'bq-head' });
-    head.style.setProperty('--bdur', (3.6 + Math.random() * 1.6).toFixed(2) + 's');
-    head.style.setProperty('--bdelay', (i * 0.18).toFixed(2) + 's');
-
-    var petalCount = 13;
-    for (var p = 0; p < petalCount; p++){
-      var angle = (360 / petalCount) * p;
-      var fill = (p % 3 === 0) ? '#f2971d' : '#ffc93c';
-      head.appendChild(el('ellipse', {
-        cx: 0, cy: -19, rx: 7, ry: 15,
-        transform: 'rotate(' + angle + ')',
-        fill: fill
-      }));
-    }
-    head.appendChild(el('circle', { r: 10.5, fill: '#6b3714' }));
-    for (var d = 0; d < 8; d++){
-      var a2 = (Math.PI * 2 / 8) * d;
-      head.appendChild(el('circle', {
-        cx: Math.cos(a2) * 5, cy: Math.sin(a2) * 5, r: 1.1, fill: '#8a4a1c'
-      }));
-    }
-    anchor.appendChild(head);
-    group.appendChild(anchor);
-  });
-
-  svg.appendChild(group);
-  container.appendChild(svg);
 }
 
+makeStarfield(document.getElementById('bg-stars'), window.innerWidth, true);
+makeStarfield(document.getElementById('world-stars'), WORLD_WIDTH, true);
+
 /* =========================================================
-   MÓDULO 3 — modal: abrir / cerrar + carta escrita a máquina
+   MÓDULO 4 — navegación: arrastrar, rueda horizontal, flechas, teclado
    ========================================================= */
-(function initModal(){
-  "use strict";
-  var overlay = document.getElementById('modal-overlay');
-  var openTriggers = [document.getElementById('cta-open'), document.getElementById('cta-run')];
-  var closeTriggers = [document.getElementById('modal-close-x'), document.getElementById('modal-close-btn')];
-  var textEl = document.getElementById('modal-text');
-  var signatureEl = document.getElementById('modal-signature');
-  var runBtn = document.getElementById('cta-run');
-  var bouquetWrap = document.getElementById('bouquet-wrap');
+var stage = document.getElementById('stage');
+var panLeftBtn = document.getElementById('pan-left');
+var panRightBtn = document.getElementById('pan-right');
+var hintPill = document.getElementById('hint-pill');
+var progressFill = document.getElementById('progress-fill');
+var progressTrack = document.querySelector('.progress-track');
 
-  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var panX = 0;
+var dragging = false;
+var dragStartX = 0;
+var panStartX = 0;
+var hintHidden = false;
 
-  var LETTER = "Fernanda, hoy es el Día Internacional de las Flores Amarillas y quise construirte un rincón entero solo para decirte esto:\n\ncontigo hasta el código se siente más bonito. Cada línea de esta página, cada girasol, cada luz dorada, es una forma distinta de decir lo mismo: que me haces muy feliz.\n\nFeliz día de las flores amarillas, mi amor.";
+function bounds(){
+  var vw = window.innerWidth;
+  var min = Math.min(0, -(WORLD_WIDTH - vw));
+  return { min: min, max: 0 };
+}
+function clampPan(v){
+  var b = bounds();
+  return Math.min(b.max, Math.max(b.min, v));
+}
+function applyPan(){
+  world.style.transform = 'translateX(' + panX + 'px)';
+  var b = bounds();
+  var range = b.max - b.min;
+  var ratio = range === 0 ? 0 : (panX - b.min) / range;
+  var trackW = progressTrack.clientWidth;
+  var fillW = Math.max(30, trackW * 0.16);
+  progressFill.style.width = fillW + 'px';
+  progressFill.style.transform = 'translateX(' + ((trackW - fillW) * (1 - ratio)) + 'px)';
+}
+function setPan(v, smooth){
+  panX = clampPan(v);
+  world.style.transition = smooth ? 'transform .5s cubic-bezier(.22,1,.36,1)' : 'none';
+  applyPan();
+  if (smooth){ setTimeout(function(){ world.style.transition = 'none'; }, 520); }
+  hideHint();
+}
+function hideHint(){
+  if (hintHidden) return;
+  hintHidden = true;
+  hintPill.classList.add('hide');
+}
 
-  var typed = false;
-  var bouquetBuilt = false;
+stage.addEventListener('pointerdown', function(e){
+  dragging = true;
+  stage.classList.add('dragging');
+  dragStartX = e.clientX;
+  panStartX = panX;
+  stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove', function(e){
+  if (!dragging) return;
+  panX = clampPan(panStartX + (e.clientX - dragStartX));
+  applyPan();
+  if (Math.abs(e.clientX - dragStartX) > 6) hideHint();
+});
+function endDrag(){
+  dragging = false;
+  stage.classList.remove('dragging');
+}
+stage.addEventListener('pointerup', endDrag);
+stage.addEventListener('pointercancel', endDrag);
 
-  function typeText(el, text, speed, done){
-    var i = 0;
-    el.textContent = '';
-    var caret = document.createElement('span');
-    caret.className = 'modal-caret';
-    el.appendChild(caret);
-    var timer = setInterval(function(){
-      if (i >= text.length){
-        clearInterval(timer);
-        if (caret.parentNode) caret.parentNode.removeChild(caret);
-        if (done) done();
-        return;
-      }
-      el.insertBefore(document.createTextNode(text[i]), caret);
-      i++;
-    }, speed);
-  }
+stage.addEventListener('wheel', function(e){
+  var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  setPan(panX - delta, false);
+  e.preventDefault();
+}, { passive: false });
 
-  function openModal(){
-    if (!bouquetBuilt){
-      buildBouquet(bouquetWrap);
-      bouquetBuilt = true;
+panLeftBtn.addEventListener('click', function(){ setPan(panX + 420, true); });
+panRightBtn.addEventListener('click', function(){ setPan(panX - 420, true); });
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'ArrowRight') setPan(panX - 300, true);
+  if (e.key === 'ArrowLeft') setPan(panX + 300, true);
+});
+
+window.addEventListener('resize', function(){ setPan(panX, false); });
+
+/* =========================================================
+   MÓDULO 5 — modal: abrir/cerrar carta + carta especial del centro
+   ========================================================= */
+var overlay = document.getElementById('modal-overlay');
+var modalTitle = document.getElementById('modal-title');
+var modalText = document.getElementById('modal-text');
+var modalBouquet = document.getElementById('modal-bouquet');
+var cornerFlowers = document.querySelectorAll('.corner-flower');
+
+cornerFlowers.forEach(function(el){ fillCornerFlower(el); });
+
+function typeText(el, text, speed, done){
+  var i = 0;
+  el.textContent = '';
+  var caret = document.createElement('span');
+  caret.className = 'modal-caret';
+  el.appendChild(caret);
+  var timer = setInterval(function(){
+    if (i >= text.length){
+      clearInterval(timer);
+      if (caret.parentNode) caret.parentNode.removeChild(caret);
+      if (done) done();
+      return;
     }
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    if (!typed){
-      typed = true;
-      typeText(textEl, LETTER, REDUCE ? 4 : 16, function(){
-        signatureEl.classList.add('show');
-      });
+    el.insertBefore(document.createTextNode(text[i]), caret);
+    i++;
+  }, speed);
+}
+
+function openModal(cluster){
+  modalTitle.textContent = cluster.hero ? 'Mi amor…' : cluster.label;
+  overlay.classList.add('active');
+
+  if (cluster.hero){
+    modalBouquet.hidden = false;
+    if (!modalBouquet.dataset.built){
+      modalBouquet.appendChild(buildBouquet('modal-hero'));
+      modalBouquet.dataset.built = '1';
     }
+    typeText(modalText, cluster.text, REDUCE ? 4 : 15);
+  } else {
+    modalBouquet.hidden = true;
+    modalText.textContent = cluster.text;
   }
+}
+function closeModal(){
+  overlay.classList.remove('active');
+}
+document.getElementById('modal-close-x').addEventListener('click', closeModal);
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+});
 
-  function closeModal(){
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-    if (runBtn) runBtn.classList.remove('running');
-  }
+/* =========================================================
+   MÓDULO 6 — intro de hiperespacio
+   ========================================================= */
+(function intro(){
+  var introEl = document.getElementById('intro');
+  var canvas = document.getElementById('warp-canvas');
+  var ctx = canvas.getContext('2d');
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  openTriggers.forEach(function(btn){
-    if (!btn) return;
-    btn.addEventListener('click', function(){
-      if (btn === runBtn){
-        btn.classList.add('running');
-        btn.textContent = '▶ compilando estilos...';
-        setTimeout(function(){
-          btn.textContent = '▶ Ejecutar regalo-fernanda.css';
-          openModal();
-        }, 550);
-      } else {
-        openModal();
-      }
+  var cx = W / 2, cy = H / 2;
+  var streaks = [];
+  var n = REDUCE ? 0 : 140;
+  for (var i = 0; i < n; i++){
+    var angle = Math.random() * Math.PI * 2;
+    streaks.push({
+      angle: angle,
+      dist: Math.random() * 60,
+      speed: 4 + Math.random() * 9,
+      len: 10 + Math.random() * 30
     });
-  });
-
-  closeTriggers.forEach(function(btn){
-    btn.addEventListener('click', closeModal);
-  });
-
-  overlay.addEventListener('click', function(e){
-    if (e.target === overlay) closeModal();
-  });
-
-  document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
-  });
-})();
-
-/* =========================================================
-   MÓDULO 4 — microinteracción: destello dorado al tocar la pantalla
-   ========================================================= */
-(function initSparkle(){
-  "use strict";
-  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (REDUCE) return;
-
-  document.addEventListener('click', function(e){
-    if (e.target.closest('button') || e.target.closest('.modal-card')) return;
-    for (var i = 0; i < 6; i++){
-      var s = document.createElement('span');
-      s.style.position = 'fixed';
-      s.style.left = e.clientX + 'px';
-      s.style.top = e.clientY + 'px';
-      s.style.width = '4px';
-      s.style.height = '4px';
-      s.style.borderRadius = '50%';
-      s.style.background = '#facc15';
-      s.style.boxShadow = '0 0 8px 2px rgba(250,204,21,0.8)';
-      s.style.pointerEvents = 'none';
-      s.style.zIndex = '40';
-      var ang = Math.random() * Math.PI * 2;
-      var dist = 24 + Math.random() * 34;
-      s.style.transition = 'transform .7s cubic-bezier(.22,1,.36,1), opacity .7s ease';
-      document.body.appendChild(s);
-      requestAnimationFrame(function(s, ang, dist){
-        return function(){
-          s.style.transform = 'translate(' + (Math.cos(ang) * dist) + 'px,' + (Math.sin(ang) * dist) + 'px)';
-          s.style.opacity = '0';
-        };
-      }(s, ang, dist));
-      setTimeout(function(s){ return function(){ s.remove(); }; }(s), 750);
+  }
+  var start = null;
+  function frame(t){
+    if (!start) start = t;
+    var elapsed = t - start;
+    ctx.fillStyle = 'rgba(2,6,23,0.35)';
+    ctx.fillRect(0, 0, W, H);
+    for (var i = 0; i < streaks.length; i++){
+      var s = streaks[i];
+      s.dist += s.speed;
+      var x1 = cx + Math.cos(s.angle) * s.dist;
+      var y1 = cy + Math.sin(s.angle) * s.dist;
+      var x2 = cx + Math.cos(s.angle) * (s.dist + s.len);
+      var y2 = cy + Math.sin(s.angle) * (s.dist + s.len);
+      ctx.strokeStyle = 'rgba(250,224,138,0.85)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      if (s.dist > Math.max(W, H)){
+        s.dist = Math.random() * 40;
+        s.angle = Math.random() * Math.PI * 2;
+      }
     }
-  });
+    if (elapsed < 1900 && !REDUCE) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* centrar la galaxia sobre el ramo central antes de revelarla */
+  setPan(-(heroCluster.x - window.innerWidth / 2), false);
+
+  setTimeout(function(){
+    introEl.classList.add('fade-out');
+    setTimeout(function(){ introEl.remove(); }, 950);
+  }, REDUCE ? 300 : 2000);
 })();
+
+setTimeout(function(){ if (!hintHidden) hintPill.classList.remove('hide'); }, 2200);
 </script>
