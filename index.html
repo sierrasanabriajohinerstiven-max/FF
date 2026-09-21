@@ -71,13 +71,6 @@ button{font-family:inherit;}
 #stage.dragging .cluster{
   animation-play-state:paused;
 }
-/* drop-shadow es un filtro caro de recalcular en GPUs de celular,
-   sobre todo en 9 ramos con cientos de nodos SVG cada uno que además se
-   están moviendo. Se apaga mientras se arrastra y vuelve solo al soltar. */
-#stage.dragging .cluster-bouquet{
-  filter:none;
-  transition:none;
-}
 
 #bg-stars{
   position:fixed;
@@ -180,8 +173,10 @@ button{font-family:inherit;}
   0%,100%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(0) rotate(var(--tilt,0deg));}
   50%{transform:translate(-50%,-50%) scale(var(--depth,1)) translateY(-10px) rotate(calc(var(--tilt,0deg) * -1));}
 }
-.cluster-bouquet{width:var(--bqw,clamp(62px,16vw,100px));filter:drop-shadow(0 0 7px rgba(250,204,21,0.4));transition:filter .3s ease;}
-.cluster:hover .cluster-bouquet, .cluster:focus-visible .cluster-bouquet{filter:drop-shadow(0 0 11px rgba(250,204,21,0.7));}
+/* nada de filter/drop-shadow aquí: es carísimo de recalcular en GPUs de
+   celular en 9 ramos con cientos de nodos SVG cada uno, moviéndose todo
+   el tiempo. El rendimiento importa más que ese brillo extra. */
+.cluster-bouquet{width:var(--bqw,clamp(62px,16vw,100px));}
 .cluster.hero .cluster-bouquet{width:clamp(110px,30vw,170px);}
 .cluster-label{
   display:inline-flex;
@@ -191,14 +186,12 @@ button{font-family:inherit;}
   font-size:clamp(1rem,3.8vw,1.25rem);
   color:var(--label-color, var(--gold-1));
   white-space:nowrap;
-  /* antes eran 8 capas de text-shadow para el halo de legibilidad: se ve
-     igual de bien con un contorno de trazo (una sola pasada de pintado)
-     y solo una sombra de brillo, mucho más barato de repintar en celular
-     cada vez que la etiqueta se mueve durante el arrastre */
-  -webkit-text-stroke:3px rgba(0,0,0,0.88);
-  text-stroke:3px rgba(0,0,0,0.88);
+  /* nada de text-shadow (era carísimo de repintar en celular): solo un
+     contorno de trazo, una única pasada de pintado, para que el texto
+     se siga leyendo sobre cualquier fondo */
+  -webkit-text-stroke:3px rgba(0,0,0,0.9);
+  text-stroke:3px rgba(0,0,0,0.9);
   paint-order:stroke fill;
-  text-shadow:0 2px 8px rgba(0,0,0,0.7), 0 0 14px var(--label-glow, rgba(250,204,21,0.55));
 }
 .cluster.hero{gap:16px;}
 .cluster.hero .cluster-label{font-size:clamp(1.3rem,5vw,1.6rem);}
