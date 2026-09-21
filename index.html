@@ -61,9 +61,11 @@ button{font-family:inherit;}
 }
 #stage.dragging{cursor:grabbing;}
 /* mientras se arrastra para girar la galaxia, se pausan las animaciones
-   ambientales (remolino, vaivén de pétalos, flotado de racimos) para que
-   toda la potencia del navegador se vaya en mover la órbita sin trabarse */
-#stage.dragging .spiral-galaxy,
+   ambientales más pesadas (vaivén de pétalos, flotado de racimos: muchos
+   elementos SVG recalculando su filtro a la vez) para que toda la potencia
+   se vaya en mover la órbita sin trabarse. El remolino NO se pausa: es una
+   sola capa que solo gira con un transform, no cuesta nada mantenerla en
+   movimiento. */
 #stage.dragging .bouquet-sway,
 #stage.dragging .bq-head,
 #stage.dragging .cluster{
@@ -639,10 +641,10 @@ function buildSpiralGalaxy(container){
      dentro del aro de la órbita-. */
   var MIN_R = 62;
   var cx = 150, cy = 150;
-  var arms = 5;
+  var arms = 18;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
-    for (var t = 0; t <= 4.4; t += 0.032){
+    for (var t = 0; t <= 4.4; t += 0.05){
       var r = 4 * Math.exp(0.79 * t);
       if (r > 132) break;
       if (r < MIN_R) continue;
