@@ -276,7 +276,10 @@ button{font-family:inherit;}
   margin-top:10px;
   font-size:1.02rem;
   line-height:1.65;
-  white-space:pre-wrap;
+  white-space:normal;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+  text-align:center;
 }
 .modal-text b{color:var(--gold-3);}
 .modal-caret{display:inline-block;width:2px;background:var(--rose-2);margin-left:1px;animation:caret-blink 1s step-end infinite;}
@@ -1023,7 +1026,13 @@ function typeText(el, text, speed, done){
       if (i >= text.length && done) done();
       return;
     }
-    el.insertBefore(document.createTextNode(text[i]), caret);
+    var ch = text[i];
+    if (ch === '\n'){
+      /* insert <br> for line breaks so they render with white-space:normal */
+      el.insertBefore(document.createElement('br'), caret);
+    } else {
+      el.insertBefore(document.createTextNode(ch), caret);
+    }
     i++;
   }, speed);
   activeTypeTimer = timer;
@@ -1039,7 +1048,11 @@ function openModal(cluster){
       modalBouquet.appendChild(buildBouquet('modal-hero'));
       modalBouquet.dataset.built = '1';
     }
-    typeText(modalText, cluster.text, REDUCE ? 4 : 15);
+    /* Split on double-newline to get paragraphs, then type them sequentially */
+    var paragraphs = cluster.text.split('\n\n');
+    modalText.innerHTML = '';
+    var flatText = paragraphs.join('\n\n');
+    typeText(modalText, flatText, REDUCE ? 4 : 15);
   } else {
     modalBouquet.hidden = true;
     modalText.textContent = cluster.text;
