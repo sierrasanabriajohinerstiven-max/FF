@@ -935,20 +935,41 @@ function spinLoop(){
   requestAnimationFrame(spinLoop);
 }
 
+/* antes se activaba "dragging" y setPointerCapture en cualquier pointerdown,
+   así que un simple click con mouse (sin arrastrar) también quedaba
+   capturado por #stage y nunca le llegaba el evento "click" al botón de
+   la tarjeta -por eso no abrían con mouse en computador-. Ahora solo se
+   entra en modo arrastre cuando el puntero se mueve más que un pequeño
+   umbral; si no se movió, no se toca el pointer capture y el click nativo
+   del botón funciona normal. */
+var DRAG_THRESHOLD = 5;
+var activePointerId = null;
+var dragStarted = false;
+
 stage.addEventListener('pointerdown', function(e){
-  dragging = true;
-  stage.classList.add('dragging');
+  activePointerId = e.pointerId;
   dragStartX = e.clientX;
   angleStart = angleOffset;
-  stage.setPointerCapture(e.pointerId);
+  dragStarted = false;
+  dragging = false;
 });
 stage.addEventListener('pointermove', function(e){
-  if (!dragging) return;
-  angleOffset = angleStart + (e.clientX - dragStartX) * 0.28;
-  if (Math.abs(e.clientX - dragStartX) > 6) hideHint();
+  if (activePointerId === null || e.pointerId !== activePointerId) return;
+  var dx = e.clientX - dragStartX;
+  if (!dragStarted){
+    if (Math.abs(dx) < DRAG_THRESHOLD) return;
+    dragStarted = true;
+    dragging = true;
+    stage.classList.add('dragging');
+    stage.setPointerCapture(activePointerId);
+    hideHint();
+  }
+  angleOffset = angleStart + dx * 0.28;
 });
 function endDrag(){
   dragging = false;
+  dragStarted = false;
+  activePointerId = null;
   stage.classList.remove('dragging');
 }
 stage.addEventListener('pointerup', endDrag);
