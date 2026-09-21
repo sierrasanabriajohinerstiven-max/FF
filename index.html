@@ -710,23 +710,23 @@ buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
    MÓDULO 2 — la galaxia: racimos que orbitan un único punto central
    ========================================================= */
 var HERO = { label: 'Mi amor canelita', hero: true,
-  text: "Fernanda, hoy es el día de las flores amarillas y se me ocurrió hacerte esto en vez de solo mandarte una foto de un girasol como todo el mundo.\n\nLa verdad es que contigo hasta las cosas más simples se sienten especiales, y quería decírtelo de una forma distinta a la de siempre, aunque sea con un poco de código.\n\nFeliz día de las flores amarillas, mi amor canelita. Te quiero un montón." };
+  text: "Fernanda, hoy es el día de las flores amarillas y en vez de mandarte solo una foto de un girasol como todo el mundo, se me ocurrió armarte esto.\n\nLa verdad, contigo hasta lo más simple se siente especial, y quería decírtelo distinto a como te lo digo siempre.\n\nFeliz día de las flores amarillas, mi amor canelita. Te quiero un montón, y ya sabes que no lo digo por decir." };
 
 var CLUSTERS = [
   { label: 'Eres mi sol',
-    text: 'Ya perdí la cuenta de cuántas veces se me arregla el día solo por pensar en ti. Sé que suena cursi, pero eres literal mi sol.' },
+    text: 'No sé en qué momento te volviste la persona en la que pienso primero cuando algo bueno me pasa. Pero pasó, y ahí sigues.' },
   { label: 'Te amo',
-    text: 'Te amo, así, sin vueltas. Y ya que hoy es el día de las flores amarillas, aproveché para decírtelo con un jardín entero.' },
+    text: 'Hay días en los que se me olvida decírtelo, así que te lo dejo aquí para que no se pierda: te amo.' },
   { label: 'Eres única',
-    text: 'He conocido a mucha gente en la vida y te lo juro que ninguna se te parece. Eres rara en el buen sentido, y eso me encanta de ti.' },
+    text: 'De verdad no hay nadie como tú, y no lo digo como cumplido bonito. Lo digo porque es literal.' },
   { label: 'Amor de mi vida',
-    text: 'No sé si existe un día oficial para decir esto, pero si no existe, hoy lo inventamos: eres el amor de mi vida.' },
+    text: 'No sé cómo se supone que se diga esto sin sonar cursi, así que ni le busco: eres el amor de mi vida.' },
   { label: 'Me encantas',
-    text: 'Me encantas hasta cuando haces esas cosas random que solo tú haces. Sí, esas. Ya sabes cuáles.' },
+    text: 'Me encantas hasta en los días en los que ni tú te aguantas. Sobre todo esos, la verdad.' },
   { label: 'Eres preciosa',
-    text: 'Te lo he dicho un millón de veces y te lo sigo diciendo: eres preciosa, y no hablo solo de lo de afuera.' },
+    text: 'Eres preciosa incluso cuando tú crees que no, que es justo cuando más falta te hace escucharlo.' },
   { label: 'Siempre juntos',
-    text: 'Quiero que sigamos así, inventando cosas random como esta página, por mucho tiempo más. Siempre juntos.' }
+    text: 'No tengo un plan perfecto para el futuro, pero sea cual sea, quiero que tú estés en él. Siempre juntos.' }
 ];
 
 var clustersLayer = document.getElementById('clusters-layer');
@@ -982,22 +982,30 @@ var cornerFlowers = document.querySelectorAll('.corner-flower');
 
 cornerFlowers.forEach(function(el){ fillCornerFlower(el); });
 
+/* si se cierra la carta mientras todavía se está "escribiendo" y se abre
+   otra enseguida, el temporizador viejo seguía corriendo sobre un nodo
+   ya desconectado del DOM y tronaba -por eso se guarda uno solo activo
+   a la vez y se cancela el anterior antes de empezar uno nuevo-. */
+var activeTypeTimer = null;
 function typeText(el, text, speed, done){
+  if (activeTypeTimer){ clearInterval(activeTypeTimer); activeTypeTimer = null; }
   var i = 0;
   el.textContent = '';
   var caret = document.createElement('span');
   caret.className = 'modal-caret';
   el.appendChild(caret);
   var timer = setInterval(function(){
-    if (i >= text.length){
+    if (i >= text.length || !caret.parentNode){
       clearInterval(timer);
+      if (activeTypeTimer === timer) activeTypeTimer = null;
       if (caret.parentNode) caret.parentNode.removeChild(caret);
-      if (done) done();
+      if (i >= text.length && done) done();
       return;
     }
     el.insertBefore(document.createTextNode(text[i]), caret);
     i++;
   }, speed);
+  activeTypeTimer = timer;
 }
 
 function openModal(cluster){
