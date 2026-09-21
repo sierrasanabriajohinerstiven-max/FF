@@ -560,21 +560,29 @@ function buildSpiralGalaxy(container){
 
   svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
+  /* el radio crecía demasiado despacio (r llegaba apenas a ~18 en vez de
+     ~130), así que todo el remolino -línea y polvo- quedaba amontonado
+     en el centro, justo encima del ramo. Con el exponente correcto el
+     brazo sí se abre hacia afuera; además se salta por completo el tramo
+     cercano al centro (r<48) para que no quede nada sobre el ramo. */
+  var MIN_R = 62;
   var cx = 150, cy = 150;
   var arms = 3;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
     var points = [];
     for (var t = 0; t <= 4.4; t += 0.11){
-      var r = 4 * Math.exp(0.34 * t);
+      var r = 4 * Math.exp(0.79 * t);
       if (r > 132) break;
+      if (r < MIN_R) continue;
       var ang = t + baseAngle * Math.PI / 180;
       points.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang), r]);
     }
+    if (points.length < 2) continue;
     var d = points.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
     svg.appendChild(svgEl('path', {
-      d: d, fill: 'none', stroke: '#fffef2', 'stroke-width': 3,
-      'stroke-linecap': 'round', opacity: 0.8
+      d: d, fill: 'none', stroke: '#fffef2', 'stroke-width': 1.5,
+      'stroke-linecap': 'round', opacity: 0.4
     }));
     points.forEach(function(p, i){
       if (i % 2 !== 0) return;
@@ -712,11 +720,19 @@ function makeStarfield(canvas, width, twinkle){
       y: Math.random() * H,
       r: Math.random() * 2.2 + 1.1,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.015 + Math.random() * 0.02
+      speed: 0.006 + Math.random() * 0.008 /* parpadeo más lento y suave */
     });
   }
 
+  /* Rendimiento: no hace falta redibujar el titileo a 60fps para que se
+     vea bien -de hecho se ve mejor lento-, así que el canvas solo se
+     repinta 1 de cada 2 frames (≈30fps) para esta capa. */
+  var skip = false;
   function draw(t){
+    if (twinkle && !REDUCE){
+      skip = !skip;
+      if (skip){ requestAnimationFrame(draw); return; }
+    }
     ctx.clearRect(0, 0, width, H);
     ctx.drawImage(staticCanvas, 0, 0, width, H);
     for (var i = 0; i < goldStars.length; i++){
