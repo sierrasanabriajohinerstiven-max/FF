@@ -5,11 +5,13 @@
    1. TOKENS — paleta cósmica + tipografías
    ========================================================= */
 :root{
-  --bg-1:#020617;
-  --bg-2:#0f172a;
+  --bg-1:#050603;
+  --bg-2:#0c0f06;
   --gold-1:#facc15;
   --gold-2:#eab308;
   --gold-3:#ca8a04;
+  --olive-1:#c9d94a;
+  --olive-2:#7c8a2e;
   --rose-1:#ff9d6c;
   --rose-2:#e2492c;
   --white:#ffffff;
@@ -35,7 +37,11 @@ html,body{height:100%;}
 body{
   margin:0;
   overflow:hidden;
-  background:var(--bg-1);
+  background:
+    radial-gradient(ellipse 85% 65% at 50% 47%, rgba(201,217,74,0.24), transparent 62%),
+    radial-gradient(ellipse 46% 38% at 50% 47%, rgba(255,246,204,0.22), transparent 60%),
+    radial-gradient(140% 100% at 50% 50%, transparent 45%, rgba(0,0,0,0.6) 100%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-1) 100%);
   color:var(--white);
   font-family:var(--font-body);
   -webkit-tap-highlight-color:transparent;
@@ -98,23 +104,35 @@ button{font-family:inherit;}
   z-index:1;
 }
 
-/* nebulosa: vórtice brillante que gira lentamente, foco visual central */
+/* halo: resplandor amplio y brillante detrás del remolino, foco visual central */
 .nebula{
   position:fixed;
   top:50%;left:50%;
-  width:520px;height:520px;
-  margin:-260px 0 0 -260px;
+  width:680px;height:680px;
+  margin:-340px 0 0 -340px;
   border-radius:50%;
   background:
-    conic-gradient(from 0deg, rgba(250,204,21,0.22), rgba(202,138,4,0.05) 30%, rgba(250,204,21,0.18) 60%, rgba(202,138,4,0.05) 90%, rgba(250,204,21,0.22)),
-    radial-gradient(circle, rgba(250,204,21,0.32), transparent 68%);
-  filter:blur(6px);
-  animation:nebula-spin 40s linear infinite;
+    radial-gradient(circle, rgba(255,246,204,0.5), transparent 32%),
+    radial-gradient(circle, rgba(201,217,74,0.38), transparent 55%),
+    radial-gradient(circle, rgba(250,204,21,0.22), transparent 72%);
+  filter:blur(10px);
   pointer-events:none;
 }
+
+/* remolino de galaxia: brazos espirales generados por JS, girando despacio */
+.spiral-galaxy{
+  position:fixed;
+  top:50%;left:50%;
+  width:300px;height:300px;
+  margin:-150px 0 0 -150px;
+  pointer-events:none;
+  z-index:1;
+  animation:nebula-spin 70s linear infinite;
+}
+.spiral-galaxy svg{width:100%;height:100%;overflow:visible;}
 @keyframes nebula-spin{to{transform:rotate(360deg);}}
 
-/* corazón de partículas sobre la nebulosa: el punto fijo del que todo cuelga */
+/* corazón de partículas sobre el remolino: el punto fijo del que todo cuelga */
 .hero-heart{
   position:fixed;
   top:50%;left:50%;
@@ -123,7 +141,7 @@ button{font-family:inherit;}
   pointer-events:none;
   z-index:2;
 }
-.hero-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 22px rgba(250,204,21,0.6));animation:heart-beat 2.8s ease-in-out infinite;}
+.hero-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(250,204,21,0.55));animation:heart-beat 2.8s ease-in-out infinite;opacity:.35;}
 @keyframes heart-beat{
   0%,100%{transform:scale(1);}
   15%{transform:scale(1.07);}
@@ -131,6 +149,17 @@ button{font-family:inherit;}
   45%{transform:scale(1.04);}
   60%{transform:scale(1);}
 }
+.heart-dust{position:absolute;inset:0;}
+.heart-dust span{
+  position:absolute;
+  width:3px;height:3px;
+  background:var(--gold-1);
+  box-shadow:0 0 6px 2px rgba(250,204,21,0.75);
+  border-radius:1px;
+  transform:translate(-50%,-50%);
+  animation:dust-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes dust-twinkle{0%,100%{opacity:.4;}50%{opacity:1;}}
 .hero-heart .orbit-dot{
   position:absolute;top:50%;left:50%;
   width:6px;height:6px;margin:-3px;
@@ -170,19 +199,14 @@ button{font-family:inherit;}
   display:inline-flex;
   align-items:center;
   gap:5px;
-  padding:5px 12px;
-  border-radius:999px;
-  background:var(--glass-bg);
-  border:1px solid var(--glass-border);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
   font-family:var(--font-script);
-  font-size:clamp(.95rem,3.6vw,1.15rem);
-  color:var(--gold-1);
+  font-size:clamp(1rem,3.8vw,1.25rem);
+  color:var(--label-color, var(--gold-1));
   white-space:nowrap;
+  text-shadow:0 2px 10px rgba(0,0,0,0.85), 0 0 14px var(--label-glow, rgba(250,204,21,0.5));
 }
 .cluster:focus-visible{outline:none;}
-.cluster:focus-visible .cluster-label{outline:2px solid var(--gold-1);outline-offset:2px;}
+.cluster:focus-visible .cluster-label{text-decoration:underline;}
 
 /* =========================================================
    6. CONTROLES DE NAVEGACIÓN — flechas, pista y barra de progreso
@@ -354,7 +378,7 @@ button{font-family:inherit;}
    8. ACCESIBILIDAD
    ========================================================= */
 @media (prefers-reduced-motion: reduce){
-  .nebula,.hero-heart svg,.orbit-dot,.cluster,.hint-pill{animation-duration:.001ms !important;}
+  .spiral-galaxy,.hero-heart svg,.orbit-dot,.heart-dust span,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
 @media (max-width:640px){
   .pan-btn{width:38px;height:38px;font-size:1.2rem;}
@@ -377,6 +401,7 @@ button{font-family:inherit;}
   <canvas id="bg-stars"></canvas>
   <div class="orbit-ring" id="orbit-ring" aria-hidden="true"></div>
   <div class="nebula" id="nebula"></div>
+  <div class="spiral-galaxy" id="spiral-galaxy"></div>
   <div class="hero-heart" id="hero-heart">
     <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -391,6 +416,7 @@ button{font-family:inherit;}
     <span class="orbit-dot" style="animation-delay:0s"></span>
     <span class="orbit-dot" style="animation-delay:-3s"></span>
     <span class="orbit-dot" style="animation-delay:-6s"></span>
+    <div class="heart-dust" id="heart-dust"></div>
   </div>
   <div id="clusters-layer"></div>
 
@@ -450,11 +476,17 @@ function buildBouquet(uid){
   var paperGrad = svgEl('linearGradient', { id: 'pg-paper-' + uid, x1: 0, y1: 0, x2: 0, y2: 1 });
   paperGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--paper-1)' }));
   paperGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--paper-2)' }));
-  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(paperGrad);
+  var shadowGrad = svgEl('radialGradient', { id: 'pg-shadow-' + uid });
+  shadowGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'rgba(0,0,0,0.5)' }));
+  shadowGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'rgba(0,0,0,0)' }));
+  defs.appendChild(sunGrad); defs.appendChild(roseGrad); defs.appendChild(paperGrad); defs.appendChild(shadowGrad);
   svg.appendChild(defs);
 
   var group = svgEl('g', { class: 'bouquet-sway' });
   var tieX = 150, tieY = 300;
+
+  /* sombra que ancla el ramo al suelo */
+  svg.appendChild(svgEl('ellipse', { cx: tieX, cy: tieY + 20, rx: 56, ry: 12, fill: 'url(#pg-shadow-' + uid + ')' }));
 
   var heads = [
     { x: 150, y: 78,  s: 1.15, r: 0,   type: 'sun'  },
@@ -466,11 +498,21 @@ function buildBouquet(uid){
     { x: 230, y: 142, s: 0.82, r: 24,  type: 'sun'  }
   ];
 
-  /* envoltorio de papel, detrás de todo */
+  /* envoltorio de papel, detrás de todo, con facetas para dar textura de arrugado */
   group.appendChild(svgEl('path', {
     d: 'M' + (tieX - 46) + ',' + (tieY + 26) + ' L' + (tieX - 22) + ',' + (tieY - 74) +
        ' L' + (tieX + 22) + ',' + (tieY - 74) + ' L' + (tieX + 46) + ',' + (tieY + 26) + ' Z',
     fill: 'url(#pg-paper-' + uid + ')'
+  }));
+  group.appendChild(svgEl('path', {
+    d: 'M' + (tieX - 46) + ',' + (tieY + 26) + ' L' + (tieX - 22) + ',' + (tieY - 74) +
+       ' L' + tieX + ',' + (tieY - 60) + ' L' + (tieX - 30) + ',' + (tieY + 24) + ' Z',
+    fill: '#ffffff', opacity: 0.14
+  }));
+  group.appendChild(svgEl('path', {
+    d: 'M' + (tieX + 46) + ',' + (tieY + 26) + ' L' + (tieX + 22) + ',' + (tieY - 74) +
+       ' L' + tieX + ',' + (tieY - 60) + ' L' + (tieX + 30) + ',' + (tieY + 24) + ' Z',
+    fill: '#000000', opacity: 0.12
   }));
 
   /* tallos: curva desde el punto de amarre hasta cada cabeza */
@@ -504,19 +546,21 @@ function buildBouquet(uid){
     head.style.transformOrigin = 'center';
 
     if (h.type === 'sun'){
-      for (var layer = 0; layer < 2; layer++){
-        var count = 8;
-        var baseR = layer === 0 ? 20 : 12;
-        var offset = layer === 0 ? 0 : 22.5;
-        for (var p = 0; p < count; p++){
-          var angle = (360 / count) * p + offset;
+      var layerDefs = [
+        { count: 10, baseR: 21, rx: 7.5, ry: 16, offset: 0 },
+        { count: 9,  baseR: 15, rx: 6,   ry: 12.5, offset: 20 },
+        { count: 8,  baseR: 9,  rx: 4.5, ry: 8,   offset: 38 }
+      ];
+      layerDefs.forEach(function(layer){
+        for (var p = 0; p < layer.count; p++){
+          var angle = (360 / layer.count) * p + layer.offset;
           head.appendChild(svgEl('ellipse', {
-            cx: 0, cy: -baseR, rx: layer === 0 ? 7 : 5, ry: layer === 0 ? 15 : 10,
+            cx: 0, cy: -layer.baseR, rx: layer.rx, ry: layer.ry,
             transform: 'rotate(' + angle + ')',
             fill: 'url(#pg-sun-' + uid + ')'
           }));
         }
-      }
+      });
       head.appendChild(svgEl('circle', { r: 10.5, fill: '#6b3714' }));
       for (var d = 0; d < 8; d++){
         var a2 = (Math.PI * 2 / 8) * d;
@@ -524,6 +568,7 @@ function buildBouquet(uid){
           cx: Math.cos(a2) * 5, cy: Math.sin(a2) * 5, r: 1.1, fill: '#8a4a1c'
         }));
       }
+      head.appendChild(svgEl('ellipse', { cx: -3, cy: -3, rx: 3, ry: 2, fill: '#ffffff', opacity: 0.35 }));
     } else {
       for (var ring = 0; ring < 4; ring++){
         var rCount = 6;
@@ -572,6 +617,77 @@ styleTag.textContent = '@keyframes bq-shimmer{0%,100%{transform:rotate(-2.5deg) 
 document.head.appendChild(styleTag);
 
 /* =========================================================
+   MÓDULO 1B — el remolino de galaxia y el corazón de polvo dorado
+   ========================================================= */
+function buildSpiralGalaxy(container){
+  var svg = svgEl('svg', { viewBox: '0 0 300 300' });
+  var defs = svgEl('defs', {});
+  var coreGrad = svgEl('radialGradient', { id: 'spiral-core' });
+  coreGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#fffdf0' }));
+  coreGrad.appendChild(svgEl('stop', { offset: '35%', 'stop-color': '#ffe789' }));
+  coreGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'transparent' }));
+  defs.appendChild(coreGrad);
+  svg.appendChild(defs);
+
+  svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 60, fill: 'url(#spiral-core)' }));
+
+  var cx = 150, cy = 150;
+  var arms = 2;
+  for (var a = 0; a < arms; a++){
+    var baseAngle = (360 / arms) * a;
+    var points = [];
+    for (var t = 0; t <= 4.4; t += 0.11){
+      var r = 4 * Math.exp(0.34 * t);
+      if (r > 128) break;
+      var ang = t + baseAngle * Math.PI / 180;
+      points.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang), r]);
+    }
+    var d = points.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    svg.appendChild(svgEl('path', {
+      d: d, fill: 'none', stroke: '#f5e9a8', 'stroke-width': 2.2,
+      'stroke-linecap': 'round', opacity: 0.55
+    }));
+    points.forEach(function(p, i){
+      if (i % 2 !== 0) return;
+      var fade = 1 - Math.min(p[2] / 128, 1);
+      svg.appendChild(svgEl('circle', {
+        cx: p[0] + (Math.random() * 6 - 3), cy: p[1] + (Math.random() * 6 - 3),
+        r: 0.7 + Math.random() * 1.3,
+        fill: Math.random() > 0.4 ? '#fff6cc' : 'var(--gold-1)',
+        opacity: (0.35 + fade * 0.55).toFixed(2)
+      }));
+    });
+  }
+  container.appendChild(svg);
+}
+buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
+
+function buildHeartDust(container){
+  var pts = [];
+  for (var deg = 0; deg < 360; deg += 6){
+    var t = deg * Math.PI / 180;
+    var x = 16 * Math.pow(Math.sin(t), 3);
+    var y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+    pts.push([x, y]);
+  }
+  var xs = pts.map(function(p){ return p[0]; });
+  var ys = pts.map(function(p){ return p[1]; });
+  var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  pts.forEach(function(p, i){
+    var span = document.createElement('span');
+    var leftPct = ((p[0] - minX) / (maxX - minX)) * 100;
+    var topPct = ((p[1] - minY) / (maxY - minY)) * 100;
+    span.style.left = leftPct.toFixed(1) + '%';
+    span.style.top = topPct.toFixed(1) + '%';
+    span.style.animationDelay = (Math.random() * 2.4).toFixed(2) + 's';
+    if (Math.random() > 0.7) span.style.background = 'var(--white)';
+    container.appendChild(span);
+  });
+}
+buildHeartDust(document.getElementById('heart-dust'));
+
+/* =========================================================
    MÓDULO 2 — la galaxia: racimos que orbitan un único punto central
    ========================================================= */
 var HERO = { label: 'Mi amor', hero: true,
@@ -612,7 +728,12 @@ function makeClusterEl(c, uid, extraClass){
 
   var label = document.createElement('span');
   label.className = 'cluster-label';
-  label.innerHTML = c.label + ' <span aria-hidden="true">&#128156;</span>';
+  var heartEmoji = uid % 2 === 0 ? '&#128155;' : '&#129293;';
+  label.innerHTML = c.label + ' <span aria-hidden="true">' + heartEmoji + '</span>';
+  if (uid % 3 === 1){
+    label.style.setProperty('--label-color', 'var(--white)');
+    label.style.setProperty('--label-glow', 'rgba(255,255,255,0.55)');
+  }
   btn.appendChild(label);
 
   btn.addEventListener('click', function(){ openModal(c); });
@@ -653,12 +774,15 @@ function makeStarfield(canvas, width, twinkle){
   var count = Math.floor((width * H) / 6500);
   var stars = [];
   for (var i = 0; i < count; i++){
+    var gold = Math.random() < 0.22;
     stars.push({
       x: Math.random() * width,
       y: Math.random() * H,
-      r: Math.random() * 1.5 + 0.3,
+      r: gold ? (Math.random() * 2.2 + 1.1) : (Math.random() * 1.5 + 0.3),
       phase: Math.random() * Math.PI * 2,
-      speed: 0.015 + Math.random() * 0.02
+      speed: 0.015 + Math.random() * 0.02,
+      color: gold ? '#ffe08a' : '#ffffff',
+      glow: gold
     });
   }
   function draw(t){
@@ -666,12 +790,14 @@ function makeStarfield(canvas, width, twinkle){
     for (var i = 0; i < stars.length; i++){
       var s = stars[i];
       var tw = twinkle && !REDUCE ? (Math.sin(t * s.speed + s.phase) * 0.5 + 0.5) : 0.75;
-      ctx.globalAlpha = 0.25 + tw * 0.75;
-      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = (0.25 + tw * 0.75) * (s.glow ? 0.85 : 1);
+      ctx.fillStyle = s.color;
+      if (s.glow){ ctx.shadowColor = s.color; ctx.shadowBlur = 6; } else { ctx.shadowBlur = 0; }
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
     if (twinkle && !REDUCE) requestAnimationFrame(draw);
   }
