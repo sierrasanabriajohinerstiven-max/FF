@@ -132,54 +132,19 @@ button{font-family:inherit;}
 .spiral-galaxy svg{width:100%;height:100%;overflow:visible;}
 @keyframes nebula-spin{to{transform:rotate(360deg);}}
 
-/* corazón de partículas sobre el remolino: el punto fijo del que todo cuelga */
-.hero-heart{
+/* título pequeño, centrado arriba, sin ocupar el espacio que ocupaba el corazón */
+.page-title{
   position:fixed;
-  top:50%;left:50%;
-  width:170px;height:154px;
-  margin:-330px 0 0 -85px;
+  top:calc(20px + env(safe-area-inset-top,0px));
+  left:0;right:0;
+  z-index:5;
+  text-align:center;
   pointer-events:none;
-  z-index:2;
+  font-family:var(--font-script);
+  font-size:clamp(1.8rem,7vw,2.4rem);
+  color:var(--white);
+  text-shadow:0 0 18px rgba(250,204,21,0.4), 0 2px 10px rgba(0,0,0,0.6);
 }
-.heart-core-glow{
-  position:absolute;
-  left:50%;top:54%;
-  width:70%;height:70%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(255,251,224,0.85), rgba(250,204,21,0.35) 45%, transparent 72%);
-  filter:blur(7px);
-  animation:heart-beat 2.8s ease-in-out infinite;
-}
-.hero-heart svg{position:relative;width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(250,204,21,0.45));animation:heart-beat 2.8s ease-in-out infinite;opacity:.22;}
-@keyframes heart-beat{
-  0%,100%{transform:scale(1);}
-  15%{transform:scale(1.07);}
-  30%{transform:scale(.98);}
-  45%{transform:scale(1.04);}
-  60%{transform:scale(1);}
-}
-.heart-dust{position:absolute;inset:0;}
-.heart-dust span{
-  position:absolute;
-  width:var(--dot-s,3px);height:var(--dot-s,3px);
-  background:var(--dot-c,var(--gold-1));
-  box-shadow:0 0 7px 2px var(--dot-glow,rgba(250,204,21,0.75));
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  animation:dust-twinkle 2.4s ease-in-out infinite;
-}
-@keyframes dust-twinkle{0%,100%{opacity:.35;}50%{opacity:1;}}
-.hero-heart .orbit-dot{
-  position:absolute;top:50%;left:50%;
-  width:6px;height:6px;margin:-3px;
-  border-radius:50%;
-  background:var(--gold-1);
-  box-shadow:0 0 8px 2px rgba(250,204,21,0.85);
-  offset-path:circle(105px at 50% 50%);
-  animation:orbit 9s linear infinite;
-}
-@keyframes orbit{to{offset-distance:100%;}}
 
 /* =========================================================
    5. RACIMOS — ramos flotantes, tocables, con su etiqueta
@@ -355,7 +320,7 @@ button{font-family:inherit;}
    8. ACCESIBILIDAD
    ========================================================= */
 @media (prefers-reduced-motion: reduce){
-  .spiral-galaxy,.hero-heart svg,.orbit-dot,.heart-dust span,.cluster,.hint-pill{animation-duration:.001ms !important;}
+  .spiral-galaxy,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
 </style>
 
@@ -375,25 +340,10 @@ button{font-family:inherit;}
   <div class="orbit-ring" id="orbit-ring" aria-hidden="true"></div>
   <div class="nebula" id="nebula"></div>
   <div class="spiral-galaxy" id="spiral-galaxy"></div>
-  <div class="hero-heart" id="hero-heart">
-    <div class="heart-core-glow" aria-hidden="true"></div>
-    <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#fff6cc"/>
-          <stop offset="45%" stop-color="var(--gold-1)"/>
-          <stop offset="100%" stop-color="var(--gold-3)"/>
-        </linearGradient>
-      </defs>
-      <path fill="url(#heartGrad)" d="M16 28.5 2.6 15.7C-1.9 11.2 0.4 3.6 6.7 2.4c3.4-0.6 6.8 0.9 8.7 3.7 1.9-2.8 5.3-4.3 8.7-3.7 6.3 1.2 8.6 8.8 4.1 13.3z"/>
-    </svg>
-    <span class="orbit-dot" style="animation-delay:0s"></span>
-    <span class="orbit-dot" style="animation-delay:-3s"></span>
-    <span class="orbit-dot" style="animation-delay:-6s"></span>
-    <div class="heart-dust" id="heart-dust"></div>
-  </div>
   <div id="clusters-layer"></div>
 </div>
+
+<p class="page-title">Fernanda</p>
 
 <p class="hint-pill" id="hint-pill">Arrastra para girar la galaxia &#8635;</p>
 
@@ -405,7 +355,7 @@ button{font-family:inherit;}
     <svg class="corner-flower tl" viewBox="0 0 60 60"></svg>
     <svg class="corner-flower br" viewBox="0 0 60 60"></svg>
     <button class="modal-close" id="modal-close-x" type="button" aria-label="Cerrar">&#10005;</button>
-    <h2 class="modal-title" id="modal-title">Mi amor&hellip;</h2>
+    <h2 class="modal-title" id="modal-title">Mi amor canelita&hellip;</h2>
     <div class="modal-bouquet" id="modal-bouquet" hidden></div>
     <p class="modal-text" id="modal-text"></p>
     <button class="modal-close-btn" id="modal-close-btn" type="button">Cerrar &#127803;</button>
@@ -675,73 +625,27 @@ function buildSpiralGalaxy(container){
 }
 buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
 
-function heartPoint(deg, scale){
-  var t = deg * Math.PI / 180;
-  return [
-    16 * Math.pow(Math.sin(t), 3) * scale,
-    -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale
-  ];
-}
-function buildHeartDust(container){
-  var outline = [];
-  for (var deg = 0; deg < 360; deg += 4){ outline.push(heartPoint(deg, 1)); }
-
-  /* el porcentaje de todos los puntos (contorno y relleno) se calcula sobre
-     la caja del contorno completo (escala 1), para que ambas capas encajen */
-  var xs = outline.map(function(p){ return p[0]; });
-  var ys = outline.map(function(p){ return p[1]; });
-  var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
-  var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
-
-  function place(p, sizePx, white, delay){
-    var span = document.createElement('span');
-    span.style.left = (((p[0] - minX) / (maxX - minX)) * 100).toFixed(1) + '%';
-    span.style.top = (((p[1] - minY) / (maxY - minY)) * 100).toFixed(1) + '%';
-    span.style.setProperty('--dot-s', sizePx.toFixed(1) + 'px');
-    if (white){
-      span.style.setProperty('--dot-c', 'var(--white)');
-      span.style.setProperty('--dot-glow', 'rgba(255,255,255,0.8)');
-    }
-    span.style.animationDelay = delay + 's';
-    container.appendChild(span);
-  }
-
-  /* contorno: la silueta nítida del corazón */
-  outline.forEach(function(p){
-    var big = Math.random() > 0.65;
-    place(p, big ? 4 : 2.6, Math.random() > 0.7, (Math.random() * 2.4).toFixed(2));
-  });
-
-  /* relleno: puntitos dispersos dentro, para que se sienta "hecho de estrellas"
-     y no solo un contorno hueco */
-  for (var i = 0; i < 28; i++){
-    var p2 = heartPoint(Math.random() * 360, 0.22 + Math.random() * 0.58);
-    place(p2, 1.4 + Math.random() * 1.6, Math.random() > 0.55, (Math.random() * 2.4).toFixed(2));
-  }
-}
-buildHeartDust(document.getElementById('heart-dust'));
-
 /* =========================================================
    MÓDULO 2 — la galaxia: racimos que orbitan un único punto central
    ========================================================= */
-var HERO = { label: 'Mi amor', hero: true,
-  text: "Fernanda, hoy es el Día Internacional de las Flores Amarillas y quise construirte un universo entero solo para decirte esto:\n\ncontigo hasta lo más pequeño se siente enorme. Cada girasol de esta galaxia, cada luz dorada, es una forma distinta de decir lo mismo: que me haces muy feliz.\n\nFeliz día de las flores amarillas, mi amor." };
+var HERO = { label: 'Mi amor canelita', hero: true,
+  text: "Fernanda, hoy es el día de las flores amarillas y se me ocurrió hacerte esto en vez de solo mandarte una foto de un girasol como todo el mundo.\n\nLa verdad es que contigo hasta las cosas más simples se sienten especiales, y quería decírtelo de una forma distinta a la de siempre, aunque sea con un poco de código.\n\nFeliz día de las flores amarillas, mi amor canelita. Te quiero un montón." };
 
 var CLUSTERS = [
   { label: 'Eres mi sol',
-    text: 'Cada mañana que despierto pensando en ti confirmo esto: eres la luz que hace que todo lo demás tenga sentido.' },
+    text: 'Ya perdí la cuenta de cuántas veces se me arregla el día solo por pensar en ti. Sé que suena cursi, pero eres literal mi sol.' },
   { label: 'Te amo',
-    text: 'No hay una sola flor amarilla que alcance para decir cuánto te amo, así que mejor te construí un jardín entero de ellas.' },
+    text: 'Te amo, así, sin vueltas. Y ya que hoy es el día de las flores amarillas, aproveché para decírtelo con un jardín entero.' },
   { label: 'Eres única',
-    text: 'He visto muchos cielos y muchas cosas bonitas en el camino, y ninguna se compara contigo.' },
+    text: 'He conocido a mucha gente en la vida y te lo juro que ninguna se te parece. Eres rara en el buen sentido, y eso me encanta de ti.' },
   { label: 'Amor de mi vida',
-    text: 'Si el 21 de septiembre existe para las flores amarillas, que exista también un día solo para recordarte cuánto significas para mí.' },
+    text: 'No sé si existe un día oficial para decir esto, pero si no existe, hoy lo inventamos: eres el amor de mi vida.' },
   { label: 'Me encantas',
-    text: 'Me encantas hasta en los detalles más pequeños, de esos que nadie más nota pero yo sí.' },
+    text: 'Me encantas hasta cuando haces esas cosas random que solo tú haces. Sí, esas. Ya sabes cuáles.' },
   { label: 'Eres preciosa',
-    text: 'Preciosa no alcanza a describirte, pero es lo más cerca que las palabras logran llegar.' },
+    text: 'Te lo he dicho un millón de veces y te lo sigo diciendo: eres preciosa, y no hablo solo de lo de afuera.' },
   { label: 'Siempre juntos',
-    text: 'Pase lo que pase, quiero seguir construyendo jardines contigo. Siempre juntos.' }
+    text: 'Quiero que sigamos así, inventando cosas random como esta página, por mucho tiempo más. Siempre juntos.' }
 ];
 
 var clustersLayer = document.getElementById('clusters-layer');
@@ -891,12 +795,16 @@ function orbitRadius(){
   return Math.min(340, Math.max(140, Math.min(window.innerWidth, window.innerHeight) * 0.4));
 }
 
+/* el aro guía tiene que trazar exactamente el mismo camino elíptico que
+   siguen los racimos en positionOrbit() (radio*0.55 en el eje vertical) -
+   si no, se ve como un círculo suelto que no tiene nada que ver con la
+   órbita real. */
 function layoutRing(){
   var R = orbitRadius();
   orbitRing.style.width = (R * 2) + 'px';
-  orbitRing.style.height = (R * 1.05 * 2) + 'px';
+  orbitRing.style.height = (R * 0.55 * 2) + 'px';
   orbitRing.style.marginLeft = -R + 'px';
-  orbitRing.style.marginTop = -(R * 1.05) + 'px';
+  orbitRing.style.marginTop = -(R * 0.55) + 'px';
 }
 
 function positionOrbit(){
@@ -994,7 +902,7 @@ function typeText(el, text, speed, done){
 }
 
 function openModal(cluster){
-  modalTitle.textContent = cluster.hero ? 'Mi amor…' : cluster.label;
+  modalTitle.textContent = cluster.hero ? 'Mi amor canelita…' : cluster.label;
   overlay.classList.add('active');
 
   if (cluster.hero){
