@@ -141,7 +141,17 @@ button{font-family:inherit;}
   pointer-events:none;
   z-index:2;
 }
-.hero-heart svg{width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(250,204,21,0.55));animation:heart-beat 2.8s ease-in-out infinite;opacity:.35;}
+.heart-core-glow{
+  position:absolute;
+  left:50%;top:54%;
+  width:70%;height:70%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,251,224,0.85), rgba(250,204,21,0.35) 45%, transparent 72%);
+  filter:blur(7px);
+  animation:heart-beat 2.8s ease-in-out infinite;
+}
+.hero-heart svg{position:relative;width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(250,204,21,0.45));animation:heart-beat 2.8s ease-in-out infinite;opacity:.22;}
 @keyframes heart-beat{
   0%,100%{transform:scale(1);}
   15%{transform:scale(1.07);}
@@ -152,14 +162,14 @@ button{font-family:inherit;}
 .heart-dust{position:absolute;inset:0;}
 .heart-dust span{
   position:absolute;
-  width:3px;height:3px;
-  background:var(--gold-1);
-  box-shadow:0 0 6px 2px rgba(250,204,21,0.75);
-  border-radius:1px;
+  width:var(--dot-s,3px);height:var(--dot-s,3px);
+  background:var(--dot-c,var(--gold-1));
+  box-shadow:0 0 7px 2px var(--dot-glow,rgba(250,204,21,0.75));
+  border-radius:50%;
   transform:translate(-50%,-50%);
   animation:dust-twinkle 2.4s ease-in-out infinite;
 }
-@keyframes dust-twinkle{0%,100%{opacity:.4;}50%{opacity:1;}}
+@keyframes dust-twinkle{0%,100%{opacity:.35;}50%{opacity:1;}}
 .hero-heart .orbit-dot{
   position:absolute;top:50%;left:50%;
   width:6px;height:6px;margin:-3px;
@@ -227,34 +237,6 @@ button{font-family:inherit;}
 /* =========================================================
    6. CONTROLES DE NAVEGACIÓN
    ========================================================= */
-.top-bar{
-  position:fixed;
-  top:calc(16px + env(safe-area-inset-top,0px));
-  left:0;right:0;
-  z-index:15;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-  pointer-events:none;
-  text-align:center;
-}
-.top-eyebrow{
-  font-family:var(--font-sans);
-  font-size:.68rem;
-  font-weight:600;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--gold-1);
-  text-shadow:0 2px 10px rgba(0,0,0,0.6);
-}
-.top-title{
-  font-family:var(--font-script);
-  font-size:2rem;
-  color:var(--white);
-  text-shadow:0 0 18px rgba(250,204,21,0.4);
-}
-
 .hint-pill{
   position:fixed;
   bottom:calc(64px + env(safe-area-inset-bottom,0px));
@@ -375,9 +357,6 @@ button{font-family:inherit;}
 @media (prefers-reduced-motion: reduce){
   .spiral-galaxy,.hero-heart svg,.orbit-dot,.heart-dust span,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
-@media (max-width:640px){
-  .top-title{font-size:1.6rem;}
-}
 </style>
 
 <!-- =========================================================
@@ -397,6 +376,7 @@ button{font-family:inherit;}
   <div class="nebula" id="nebula"></div>
   <div class="spiral-galaxy" id="spiral-galaxy"></div>
   <div class="hero-heart" id="hero-heart">
+    <div class="heart-core-glow" aria-hidden="true"></div>
     <svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -413,11 +393,6 @@ button{font-family:inherit;}
     <div class="heart-dust" id="heart-dust"></div>
   </div>
   <div id="clusters-layer"></div>
-</div>
-
-<div class="top-bar">
-  <p class="top-eyebrow">21 de septiembre &middot; Día Internacional de las Flores Amarillas</p>
-  <p class="top-title">para Fernanda</p>
 </div>
 
 <p class="hint-pill" id="hint-pill">Arrastra para girar la galaxia &#8635;</p>
@@ -516,18 +491,38 @@ function buildBouquet(uid){
   }));
 
   /* tallos: curva desde el punto de amarre hasta cada cabeza */
+  function stemCurve(h){
+    return {
+      p0: [tieX, tieY],
+      p1: [tieX + (h.x - tieX) * 0.5, tieY - (tieY - h.y) * 0.55],
+      p2: [h.x, h.y + 14]
+    };
+  }
   heads.forEach(function(h){
-    var ctrlX = tieX + (h.x - tieX) * 0.5;
-    var ctrlY = tieY - (tieY - h.y) * 0.55;
+    var c = stemCurve(h);
     group.appendChild(svgEl('path', {
-      d: 'M' + tieX + ',' + tieY + ' Q' + ctrlX + ',' + ctrlY + ' ' + h.x + ',' + (h.y + 14),
+      d: 'M' + c.p0[0] + ',' + c.p0[1] + ' Q' + c.p1[0] + ',' + c.p1[1] + ' ' + c.p2[0] + ',' + c.p2[1],
       fill: 'none', stroke: '#3f6b2b', 'stroke-width': 3, 'stroke-linecap': 'round'
     }));
   });
 
-  /* un par de hojas para dar volumen */
-  group.appendChild(svgEl('path', { d: 'M150,210 Q115,202 100,225 Q125,234 150,218 Z', fill: '#4f7a3a' }));
-  group.appendChild(svgEl('path', { d: 'M155,225 Q195,218 210,240 Q180,248 155,233 Z', fill: '#446a31' }));
+  /* hojas: nacen justo donde el envoltorio de papel abraza los tallos y
+     caen hacia afuera, como en un ramo real. Posición y ángulo fijos
+     (relativos al punto de amarre) en vez de calculados sobre la curva del
+     tallo, que las hacía apuntar hacia arriba y lejos del ramo. 0°=derecha,
+     90°=abajo, 180°=izquierda, en el sistema de coordenadas de SVG. */
+  [
+    { x: tieX - 30, y: tieY - 55, angle: 148, scale: 1.15 },
+    { x: tieX + 30, y: tieY - 55, angle: 32,  scale: 1.15 },
+    { x: tieX - 9,  y: tieY - 38, angle: 100, scale: 0.85 }
+  ].forEach(function(leafDef){
+    var leaf = svgEl('g', {
+      transform: 'translate(' + leafDef.x + ',' + leafDef.y + ') rotate(' + leafDef.angle + ') scale(' + leafDef.scale + ')'
+    });
+    leaf.appendChild(svgEl('path', { d: 'M0,0 Q13,-11 28,0 Q13,11 0,0 Z', fill: '#4f7a3a' }));
+    leaf.appendChild(svgEl('path', { d: 'M2,0 Q14,-1 25,0', fill: 'none', stroke: '#345424', 'stroke-width': 0.8, opacity: 0.55 }));
+    group.appendChild(leaf);
+  });
 
   /* lazo sobre el envoltorio */
   group.appendChild(svgEl('path', { d: 'M150,298 L112,275 Q104,272 108,288 Q112,302 132,298 Z', fill: '#7a2e2f' }));
@@ -680,28 +675,49 @@ function buildSpiralGalaxy(container){
 }
 buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
 
+function heartPoint(deg, scale){
+  var t = deg * Math.PI / 180;
+  return [
+    16 * Math.pow(Math.sin(t), 3) * scale,
+    -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * scale
+  ];
+}
 function buildHeartDust(container){
-  var pts = [];
-  for (var deg = 0; deg < 360; deg += 6){
-    var t = deg * Math.PI / 180;
-    var x = 16 * Math.pow(Math.sin(t), 3);
-    var y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-    pts.push([x, y]);
-  }
-  var xs = pts.map(function(p){ return p[0]; });
-  var ys = pts.map(function(p){ return p[1]; });
+  var outline = [];
+  for (var deg = 0; deg < 360; deg += 4){ outline.push(heartPoint(deg, 1)); }
+
+  /* el porcentaje de todos los puntos (contorno y relleno) se calcula sobre
+     la caja del contorno completo (escala 1), para que ambas capas encajen */
+  var xs = outline.map(function(p){ return p[0]; });
+  var ys = outline.map(function(p){ return p[1]; });
   var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
   var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
-  pts.forEach(function(p, i){
+
+  function place(p, sizePx, white, delay){
     var span = document.createElement('span');
-    var leftPct = ((p[0] - minX) / (maxX - minX)) * 100;
-    var topPct = ((p[1] - minY) / (maxY - minY)) * 100;
-    span.style.left = leftPct.toFixed(1) + '%';
-    span.style.top = topPct.toFixed(1) + '%';
-    span.style.animationDelay = (Math.random() * 2.4).toFixed(2) + 's';
-    if (Math.random() > 0.7) span.style.background = 'var(--white)';
+    span.style.left = (((p[0] - minX) / (maxX - minX)) * 100).toFixed(1) + '%';
+    span.style.top = (((p[1] - minY) / (maxY - minY)) * 100).toFixed(1) + '%';
+    span.style.setProperty('--dot-s', sizePx.toFixed(1) + 'px');
+    if (white){
+      span.style.setProperty('--dot-c', 'var(--white)');
+      span.style.setProperty('--dot-glow', 'rgba(255,255,255,0.8)');
+    }
+    span.style.animationDelay = delay + 's';
     container.appendChild(span);
+  }
+
+  /* contorno: la silueta nítida del corazón */
+  outline.forEach(function(p){
+    var big = Math.random() > 0.65;
+    place(p, big ? 4 : 2.6, Math.random() > 0.7, (Math.random() * 2.4).toFixed(2));
   });
+
+  /* relleno: puntitos dispersos dentro, para que se sienta "hecho de estrellas"
+     y no solo un contorno hueco */
+  for (var i = 0; i < 28; i++){
+    var p2 = heartPoint(Math.random() * 360, 0.22 + Math.random() * 0.58);
+    place(p2, 1.4 + Math.random() * 1.6, Math.random() > 0.55, (Math.random() * 2.4).toFixed(2));
+  }
 }
 buildHeartDust(document.getElementById('heart-dust'));
 
