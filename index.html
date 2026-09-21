@@ -106,8 +106,6 @@ button{font-family:inherit;}
 .spiral-galaxy{
   position:fixed;
   top:50%;left:50%;
-  width:380px;height:380px;
-  margin:-190px 0 0 -190px;
   pointer-events:none;
   z-index:1;
   animation:nebula-spin 70s linear infinite;
@@ -633,25 +631,28 @@ function buildSpiralGalaxy(container){
 
   svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
-  /* solo puntos blancos, sin líneas ni brillo (sin filtros/blur), en dos
-     brazos en espejo (180° uno del otro). El radio salta el tramo cercano
-     al centro (r<62) para que nada quede sobre el ramo. */
+  /* solo puntos blancos, súper pequeños, sin líneas ni brillo (sin
+     filtros/blur), en varios brazos repartidos en espejo (equidistantes)
+     para que se note bien la forma de remolino. El radio salta el tramo
+     cercano al centro (r<62) para que nada quede sobre el ramo, y no pasa
+     de 132 -el contenedor se escala afuera para que eso siempre quede
+     dentro del aro de la órbita-. */
   var MIN_R = 62;
   var cx = 150, cy = 150;
-  var arms = 2;
+  var arms = 5;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
-    for (var t = 0; t <= 4.4; t += 0.055){
+    for (var t = 0; t <= 4.4; t += 0.032){
       var r = 4 * Math.exp(0.79 * t);
       if (r > 132) break;
       if (r < MIN_R) continue;
       var ang = t + baseAngle * Math.PI / 180;
-      var px = cx + r * Math.cos(ang) + (Math.random() * 7 - 3.5);
-      var py = cy + r * Math.sin(ang) + (Math.random() * 7 - 3.5);
+      var px = cx + r * Math.cos(ang) + (Math.random() * 4 - 2);
+      var py = cy + r * Math.sin(ang) + (Math.random() * 4 - 2);
       var fade = 1 - Math.min(r / 132, 1);
       svg.appendChild(svgEl('circle', {
         cx: px.toFixed(1), cy: py.toFixed(1),
-        r: (0.9 + Math.random() * 1.5).toFixed(1),
+        r: (0.35 + Math.random() * 0.55).toFixed(2),
         fill: '#ffffff',
         opacity: (0.45 + fade * 0.5).toFixed(2)
       }));
@@ -686,6 +687,7 @@ var CLUSTERS = [
 
 var clustersLayer = document.getElementById('clusters-layer');
 var orbitRing = document.getElementById('orbit-ring');
+var spiralGalaxyEl = document.getElementById('spiral-galaxy');
 
 function makeClusterEl(c, uid, extraClass){
   var btn = document.createElement('button');
@@ -840,12 +842,22 @@ function orbitRadius(){
    siguen los racimos en positionOrbit() (radio*0.55 en el eje vertical) -
    si no, se ve como un círculo suelto que no tiene nada que ver con la
    órbita real. */
+var SPIRAL_MAX_R_VB = 132; /* debe coincidir con el tope de r en buildSpiralGalaxy */
 function layoutRing(){
   var R = orbitRadius();
   orbitRing.style.width = (R * 2) + 'px';
   orbitRing.style.height = (R * 0.55 * 2) + 'px';
   orbitRing.style.marginLeft = -R + 'px';
   orbitRing.style.marginTop = -(R * 0.55) + 'px';
+
+  /* el remolino se escala para que sus puntos nunca salgan del aro
+     elíptico (su límite más estrecho es el eje vertical, R*0.55) */
+  var spiralDotMaxPx = R * 0.55 * 0.85;
+  var spiralBoxPx = spiralDotMaxPx * (300 / SPIRAL_MAX_R_VB);
+  spiralGalaxyEl.style.width = spiralBoxPx + 'px';
+  spiralGalaxyEl.style.height = spiralBoxPx + 'px';
+  spiralGalaxyEl.style.marginLeft = -(spiralBoxPx / 2) + 'px';
+  spiralGalaxyEl.style.marginTop = -(spiralBoxPx / 2) + 'px';
 }
 
 function positionOrbit(){
