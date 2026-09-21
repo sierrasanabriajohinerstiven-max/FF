@@ -1,4 +1,6 @@
-<title>Órbita de Girasoles</title>
+<title>Fernanda 🌻</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
 /* =========================================================
@@ -309,7 +311,105 @@ button{font-family:inherit;}
 @media (prefers-reduced-motion: reduce){
   .spiral-galaxy,.cluster,.hint-pill{animation-duration:.001ms !important;}
 }
+
+/* =========================================================
+   9. SPLASH — pantalla de inicio temática
+   ========================================================= */
+#splash{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(250,204,21,0.18), transparent 65%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,246,204,0.22), transparent 55%),
+    linear-gradient(180deg, #050603 0%, #0c0f06 55%, #050603 100%);
+  gap:18px;
+  opacity:1;
+  transition:opacity .9s ease;
+  pointer-events:auto;
+  overflow:hidden;
+}
+#splash.fade-out{opacity:0;pointer-events:none;}
+
+.splash-flowers{
+  font-size:clamp(2rem,10vw,3.5rem);
+  letter-spacing:8px;
+  animation:splash-float 2.2s ease-in-out infinite;
+  user-select:none;
+}
+@keyframes splash-float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+}
+
+.splash-main{
+  font-family:var(--font-script);
+  font-size:clamp(3rem,14vw,6rem);
+  color:var(--gold-1);
+  text-shadow:
+    0 0 40px rgba(250,204,21,0.7),
+    0 0 80px rgba(250,204,21,0.35),
+    0 4px 20px rgba(0,0,0,0.8);
+  animation:splash-pulse 1.8s ease-in-out infinite;
+  line-height:1.1;
+  text-align:center;
+  padding:0 20px;
+}
+@keyframes splash-pulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.04);}
+}
+
+.splash-sub{
+  font-family:var(--font-sans);
+  font-size:clamp(.75rem,3.2vw,1rem);
+  color:rgba(253,246,227,0.65);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  text-align:center;
+  padding:0 20px;
+}
+
+.splash-tap{
+  margin-top:28px;
+  font-family:var(--font-sans);
+  font-size:clamp(.7rem,2.8vw,.88rem);
+  color:rgba(250,204,21,0.7);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  animation:tap-blink 1.4s ease-in-out infinite;
+}
+@keyframes tap-blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.splash-petal{
+  position:absolute;
+  top:-40px;
+  font-size:1.4rem;
+  animation:petal-fall linear infinite;
+  pointer-events:none;
+  user-select:none;
+  opacity:.6;
+}
+@keyframes petal-fall{
+  0%{transform:translateY(0) rotate(0deg);}
+  100%{transform:translateY(110vh) rotate(400deg);}
+}
 </style>
+
+<!-- =========================================================
+     SPLASH — pantalla de bienvenida temática
+     ========================================================= -->
+<div id="splash" role="presentation" aria-hidden="true">
+  <!-- pétalos generados por JS -->
+  <div class="splash-flowers">🌻 🌼 🌻</div>
+  <p class="splash-main">Te amo</p>
+  <p class="splash-sub">Para Fernanda &nbsp;·&nbsp; con todo</p>
+  <p class="splash-tap">Toca para entrar</p>
+</div>
 
 <!-- =========================================================
      ESCENARIO PRINCIPAL: todo gira alrededor de un único punto central
@@ -1068,4 +1168,43 @@ document.addEventListener('keydown', function(e){
 });
 
 setTimeout(function(){ if (!hintHidden) hintPill.classList.remove('hide'); }, 900);
+
+/* =========================================================
+   MÓDULO 6 — splash de bienvenida
+   ========================================================= */
+(function(){
+  var splashEl = document.getElementById('splash');
+  if (!splashEl) return;
+
+  /* pétalos cayendo: emojis de girasol y flor */
+  var petalSymbols = ['🌻','🌼','✨','💛','🌻','🌼'];
+  var petalCount = REDUCE ? 0 : 14;
+  for (var pi = 0; pi < petalCount; pi++){
+    var p = document.createElement('span');
+    p.className = 'splash-petal';
+    p.textContent = petalSymbols[pi % petalSymbols.length];
+    var leftPct = (Math.random() * 100).toFixed(1) + '%';
+    var dur = (4 + Math.random() * 6).toFixed(2) + 's';
+    var delay = (Math.random() * 4).toFixed(2) + 's';
+    p.style.left = leftPct;
+    p.style.animationDuration = dur;
+    p.style.animationDelay = '-' + delay; /* empieza ya en mitad del camino */
+    p.style.fontSize = (1.1 + Math.random() * 1.4).toFixed(2) + 'rem';
+    splashEl.appendChild(p);
+  }
+
+  function dismissSplash(){
+    splashEl.classList.add('fade-out');
+    setTimeout(function(){
+      if (splashEl.parentNode) splashEl.parentNode.removeChild(splashEl);
+    }, 950);
+  }
+
+  /* toca/click para entrar, o auto después de 5s */
+  splashEl.addEventListener('click', dismissSplash);
+  splashEl.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') dismissSplash();
+  });
+  setTimeout(dismissSplash, 5000);
+})();
 </script>
