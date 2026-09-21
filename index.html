@@ -618,25 +618,35 @@ function buildSpiralGalaxy(container){
 
   svg.appendChild(svgEl('circle', { cx: 150, cy: 150, r: 40, fill: 'url(#spiral-core)' }));
 
-  /* solo puntos blancos, súper pequeños, sin líneas ni brillo (sin
-     filtros/blur), en varios brazos repartidos en espejo (equidistantes)
-     para que se note bien la forma de remolino. El radio salta el tramo
-     cercano al centro (r<62) para que nada quede sobre el ramo, y no pasa
-     de 132 -el contenedor se escala afuera para que eso siempre quede
-     dentro del aro de la órbita-. */
+  /* el aro de la órbita es una elipse achatada (0.55 en el eje vertical),
+     no un círculo -si el remolino se dibuja como círculo perfecto, sus
+     puntos siempre se quedan cortos arriba/abajo aunque lleguen bien a
+     los lados-. Aplicando el mismo achatado aquí, el remolino traza
+     justo el contorno del aro por todos lados. */
+  var SQUASH = 0.55;
   var MIN_R = 55;
+  var MAX_R = 140;
   var cx = 150, cy = 150;
+
+  function polar(r, ang){
+    return [cx + r * Math.cos(ang), cy + r * Math.sin(ang) * SQUASH];
+  }
+
+  /* puntos blancos súper pequeños, sin líneas ni brillo, en varios brazos
+     repartidos en espejo (equidistantes) para que se note bien la forma
+     de remolino. */
   var arms = 34;
   for (var a = 0; a < arms; a++){
     var baseAngle = (360 / arms) * a;
     for (var t = 0; t <= 4.4; t += 0.055){
       var r = 4 * Math.exp(0.79 * t);
-      if (r > 132) break;
+      if (r > MAX_R) break;
       if (r < MIN_R) continue;
       var ang = t + baseAngle * Math.PI / 180;
-      var px = cx + r * Math.cos(ang) + (Math.random() * 4 - 2);
-      var py = cy + r * Math.sin(ang) + (Math.random() * 4 - 2);
-      var fade = 1 - Math.min(r / 132, 1);
+      var pt = polar(r, ang);
+      var px = pt[0] + (Math.random() * 4 - 2);
+      var py = pt[1] + (Math.random() * 4 - 2) * SQUASH;
+      var fade = 1 - Math.min(r / MAX_R, 1);
       svg.appendChild(svgEl('circle', {
         cx: px.toFixed(1), cy: py.toFixed(1),
         r: (0.35 + Math.random() * 0.55).toFixed(2),
@@ -645,6 +655,39 @@ function buildSpiralGalaxy(container){
       }));
     }
   }
+
+  /* florecitas sueltas (sin tallo, solo la flor) repartidas en espejo
+     entre los brazos, en dos anillos concéntricos */
+  var flowerGrad = svgEl('linearGradient', { id: 'spiral-flower-grad', x1: 0, y1: 0, x2: 0, y2: 1 });
+  flowerGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#fff3b0' }));
+  flowerGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#f2971d' }));
+  defs.appendChild(flowerGrad);
+
+  function miniFlower(size){
+    var g = svgEl('g', {});
+    var petals = 7;
+    for (var p = 0; p < petals; p++){
+      g.appendChild(svgEl('ellipse', {
+        cx: 0, cy: -size * 0.62, rx: size * 0.32, ry: size * 0.62,
+        transform: 'rotate(' + ((360 / petals) * p) + ')',
+        fill: 'url(#spiral-flower-grad)'
+      }));
+    }
+    g.appendChild(svgEl('circle', { r: size * 0.34, fill: '#6b3714' }));
+    return g;
+  }
+  [
+    { count: 6, r: 80,  size: 5.5 },
+    { count: 8, r: 112, size: 4.2 }
+  ].forEach(function(ring){
+    for (var i = 0; i < ring.count; i++){
+      var ang = (Math.PI * 2 / ring.count) * i;
+      var pt = polar(ring.r, ang);
+      var fg = svgEl('g', { transform: 'translate(' + pt[0].toFixed(1) + ',' + pt[1].toFixed(1) + ') rotate(' + (ang * 180 / Math.PI).toFixed(1) + ')' });
+      fg.appendChild(miniFlower(ring.size));
+      svg.appendChild(fg);
+    }
+  });
   container.appendChild(svg);
 }
 buildSpiralGalaxy(document.getElementById('spiral-galaxy'));
@@ -830,7 +873,7 @@ function orbitRadius(){
    siguen los racimos en positionOrbit() (radio*0.55 en el eje vertical) -
    si no, se ve como un círculo suelto que no tiene nada que ver con la
    órbita real. */
-var SPIRAL_MAX_R_VB = 132; /* debe coincidir con el tope de r en buildSpiralGalaxy */
+var SPIRAL_MAX_R_VB = 140; /* debe coincidir con MAX_R en buildSpiralGalaxy */
 function layoutRing(){
   var R = orbitRadius();
   orbitRing.style.width = (R * 2) + 'px';
@@ -838,9 +881,10 @@ function layoutRing(){
   orbitRing.style.marginLeft = -R + 'px';
   orbitRing.style.marginTop = -(R * 0.55) + 'px';
 
-  /* el remolino se escala para que sus puntos nunca salgan del aro
-     elíptico (su límite más estrecho es el eje vertical, R*0.55) */
-  var spiralDotMaxPx = R * 0.55 * 0.96;
+  /* el remolino ya dibuja su propio achatado (mismo 0.55 que el aro), así
+     que el contenedor se escala sobre el radio horizontal R -su forma
+     elíptica interna hace que encaje también en el eje vertical-. */
+  var spiralDotMaxPx = R * 0.96;
   var spiralBoxPx = spiralDotMaxPx * (300 / SPIRAL_MAX_R_VB);
   spiralGalaxyEl.style.width = spiralBoxPx + 'px';
   spiralGalaxyEl.style.height = spiralBoxPx + 'px';
